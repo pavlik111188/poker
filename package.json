@@ -1,0 +1,20 @@
+{
+  "name": "Poker",
+  "version": "0.0.1",
+  "description": "Poker nodejs API",
+  "dependencies": {
+    "bcrypt": "^1.0.3",
+    "bluebird": "*",
+    "body-parser": "*",
+    "cors": "*",
+    "crypto": "*",
+    "express": "*",
+    "jwt-simple": "*",
+    "moment": "^2.18.1",
+    "mongoose": "*",
+    "morgan": "*",
+    "passport": "*",
+    "passport-jwt": "*"
+  },
+  "author": "Pavel S"
+}

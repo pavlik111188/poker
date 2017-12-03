@@ -1,0 +1,137 @@
+.main_page {
+    background: #43af4d url(../img/bg_main.png) no-repeat center / 100% 100%;
+}
+button:hover {
+    cursor: pointer;
+}
+.header {
+    min-height: 220px;
+    background: rgba( 41, 231, 59, 0.95);
+}
+.logo {
+    min-height: 220px;
+    width: 100%;
+    background: url(../img/logo.png) no-repeat center / 60% 60%;
+}
+.header_text_lg {
+    color: #fff;
+    font-size: 35px;
+    text-decoration: underline;
+}
+.header_text_sm {
+    color: #fff;
+    font-size: 25px;
+    text-decoration: underline;
+}
+.auth_block {
+    padding: 10px 30px;
+}
+.auth_block div {
+    width: 100%;
+    text-align: center;
+}
+.btn_login {
+    background: url(../img/btn_login_bg.png) repeat no-repeat;
+    border: none;
+    border-radius: 5px;
+    width: 70%;
+    color: #fff;
+    text-decoration: underline;
+    font-weight: 700;
+    height: 30px;
+    margin-bottom: 10px;
+}
+.btn_reg {
+    background: url(../img/btn_reg_bg.png) repeat no-repeat;
+    border: none;
+    border-radius: 5px;
+    width: 100%;
+    color: #fff;
+    text-decoration: underline;
+    font-weight: 700;
+    height: 35px;
+    margin-bottom: 10px;
+}
+.odnoklasniky, .facebook, .twitter, .vk {
+    width: 25px;
+    height: 25px;
+    border: none;
+    border-radius: 5px;
+    margin-right: 5px;
+}
+.auth_block input {
+    margin-bottom: 10px;
+    width: 100%;
+}
+.odnoklasniky {
+    background: url(../img/odnoklasniky.png) no-repeat center / contain;
+}
+.facebook {
+    background: url(../img/facebook.png) no-repeat center / contain;
+}
+.twitter {
+    background: url(../img/twitter.png) no-repeat center / contain;
+}
+.vk {
+    background: url(../img/vk.png) no-repeat center / contain;
+}
+#navbarNav ul {
+    margin: 0 auto;
+}
+.bg-faded {
+    background-color: rgba(45, 177, 58, 0.95);
+    width: 100%;
+    min-height: 55px;
+}
+.navbar-light .navbar-nav .nav-link:focus, .navbar-light .navbar-nav .nav-link:hover, .navbar-light .navbar-nav .nav-link, .navbar-light .navbar-nav .active>.nav-link, .navbar-light .navbar-nav .nav-link.active, .navbar-light .navbar-nav .nav-link.open, .navbar-light .navbar-nav .open>.nav-link {
+    color: #fff;
+    font-size: 25px;
+    text-decoration: underline;
+}
+.content_main {
+    min-height: 700px;
+}
+.main_page_content {
+    background: rgba(62, 64, 62, 0.95);
+    min-height: 700px;
+}
+.chat_block {
+    background: #363836;
+    width: 50%;
+    min-height: 400px;
+}
+.chat {
+    margin-left: -15px;
+    padding: 0;
+}
+.buttons_area {
+    padding-top: 15px;
+}
+.buttons_area button {
+    background: #b4e391;
+    background: -moz-linear-gradient(top, #b4e391 0%, #61c419 50%, #b4e391 100%);
+    background: -webkit-linear-gradient(top, #b4e391 0%,#61c419 50%,#b4e391 100%);
+    background: linear-gradient(to bottom, #b4e391 0%,#61c419 50%,#b4e391 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#b4e391', endColorstr='#b4e391',GradientType=0 );
+    border: none;
+    color: #fff;
+    padding: 5px;
+    text-decoration: underline;
+}
+.chat_header {
+    color: #fff;
+    text-decoration: underline;
+    font-size: 28px;
+    text-transform: uppercase;
+}
+.chat_header img {
+    max-width: 50px;
+    margin-right: 25px;
+}
+footer {
+    padding: 20px;
+}
+footer img {
+    max-width: 50px;
+    margin-right: 20px;
+}

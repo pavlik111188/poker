@@ -1,0 +1,30 @@
+<nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <!--<a class="navbar-brand" href="#">Jokers</a>-->
+    </div>
+    <div id="navbar" class="collapse navbar-collapse">
+      <ul class="nav navbar-nav navbar-left">
+        <li [routerLinkActive]="['active']" [routerLinkActiveOptions]="{exact:true}"><a [routerLink]="['/club']">О клубе</a></li>
+        <li [routerLinkActive]="['active']" [routerLinkActiveOptions]="{exact:true}"><a [routerLink]="['/contacts']">Контакты</a></li>
+      </ul>
+
+      <ul class="nav navbar-nav navbar-right">
+
+        <li [routerLinkActive]="['active']" [routerLinkActiveOptions]="{exact:true}"><a [routerLink]="['/']">Игра</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Правила игры</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Игроков онлайн</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Новости</a></li>
+        <li *ngIf="!isLogged" [routerLinkActive]="['active']" [routerLinkActiveOptions]="{exact:true}"><a [routerLink]="['/login']">Вход</a></li>
+        <li *ngIf="!isLogged" [routerLinkActive]="['active']" [routerLinkActiveOptions]="{exact:true}"><a [routerLink]="['/register']">Регистрация</a></li>
+        <li *ngIf="isLogged" [routerLinkActive]="['active']" [routerLinkActiveOptions]="{exact:true}"><a (click)="logout()">Выход</a></li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div>
+</nav>

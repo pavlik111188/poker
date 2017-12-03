@@ -58,7 +58,6 @@ export class RegisterComponent {
         // Need User model for create
         this.userService.singup(user).subscribe(
             data => {
-                console.log('Data:', data);
                 if (data.success) {
                     this.flashMessagesService.show(data.msg, {cssClass: 'alert-success', timeout: 3000});
                     this.router.navigate(['/login']);

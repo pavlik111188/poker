@@ -2,7 +2,7 @@
  * Created by Pavel S on 01.06.17.
  */
 import { Injectable } from '@angular/core';
-import { Http, Headers, RequestOptions } from '@angular/http';
+import { HttpClientModule, HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
@@ -16,7 +16,7 @@ import { User } from '../models/user.model';
 export class AuthenticationService {
 
     public token: string;
-    public userRole: string;
+    public userRole: any;
 
     // URLs to web api
     private roleUrl = 'role';
@@ -28,7 +28,7 @@ export class AuthenticationService {
     //public domain: string = 'http://199.80.52.21:8085/';
 
     constructor(
-        private http: Http,
+        private http: HttpClient,
         private router: Router
     ) {
         // set token if saved in local storage
@@ -51,11 +51,11 @@ export class AuthenticationService {
                 //console.log('Role was gotten from service: ',  this.userRole);
                 observer.next(this.userRole);
             } else {
-                const headers = new Headers({ 'Authorization': this.token });
-                const options = new RequestOptions({ headers: headers });
+                const headers = new HttpHeaders({ 'Authorization': this.token });
+                // const options = new RequestOptions({ headers: headers });
                 const url = `${this.domain}${this.roleUrl}`;
-                this.http.get(url, options)
-                    .map(res => res.json() as User)
+                this.http.get(url, { headers: headers })
+                    .map(res => res as User)
                     .subscribe(
                         User => {
                             //console.log('Role was gotten from server: ', User.role.role);
@@ -63,7 +63,7 @@ export class AuthenticationService {
                         },
                         error => {
                             //console.log('Can`t get user role', error);
-                            observer.next(false);
+                            observer.next(error);
                         }
                     );
             }

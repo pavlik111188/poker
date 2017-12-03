@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Http, Headers, RequestOptions } from '@angular/http';
+import { HttpClientModule, HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/toPromise';
@@ -14,7 +14,7 @@ export class TableService {
     private newTableUrl = 'add_table';
 
     constructor(
-        private http: Http,
+        private http: HttpClient,
         private authenticationService: AuthenticationService,
     ) {
     	// set token if saved in local storage
@@ -26,11 +26,11 @@ export class TableService {
     createNewTable(name: string) {
 
         //const headers = new Headers({ 'Content-Type': 'x-www-form-urlencoded' });
-        const headers = new Headers({ 'Content-Type': 'application/json', 'Authorization': this.token});
-        const options = new RequestOptions({ headers: headers });
+        const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
+        // const options = new RequestOptions({ headers: headers });
         const url = `${this.domain}${this.newTableUrl}`;
-        return this.http.post(url, {name: name}, options)
-            .map(response => response.json());
+        return this.http.post(url, {name: name}, {headers: headers})
+            .map(response => response);
     }
 
 }

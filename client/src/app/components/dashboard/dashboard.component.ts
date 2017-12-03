@@ -1,5 +1,7 @@
 import { Component, OnChanges, SimpleChanges, Input } from '@angular/core';
 import { TableService } from '../../services/table.service';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { patternValidator } from '../../shared/pattern-validator';
 
 @Component({
   selector: 'app-dashboard',

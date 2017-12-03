@@ -11,6 +11,6 @@ export class User {
     password: string;
     role: {
         id: any;
-        role: string
+        role: any;
     };
 }

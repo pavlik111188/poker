@@ -33,17 +33,16 @@ export class UserService {
         // const options = new RequestOptions({ headers: headers });
         const url = `${this.domain}${this.signupUrl}`;
         console.log('User:', user);
-        return this.http.post(url, user, { headers: headers })
-            .map((response: Response) => {response.json()});
-        /*return new Observable(observer => {
+        return new Observable(observer => {
             this.http.post<any>(url, user, { headers: headers }).subscribe(
             (res) => {
+                console.log(res);
                 observer.next(res);
             },
             (err: HttpErrorResponse) => {
                 observer.next(err.message);
             });
-        });*/
+        });
     }
 
     // User login
@@ -54,18 +53,18 @@ export class UserService {
         const url = `${this.domain}${this.loginUrl}`;
 
         // Format {sucess: true/false, token: 'token', "user": {  "id": "592bf769e6f5834f39fcbfdf",  "name": "Pavel",  "group": "0" } }
-        return this.http.post(url, user, { headers: headers })
-            .map((response: Response) => {response.json()});
-        /*return new Observable(observer => {
+        // return this.http.post(url, user, { headers: headers })
+        //     .map((response: Response) => {JSON.parse(response)});
+        return new Observable(observer => {
             this.http.post<any>(url, user, { headers: headers }).subscribe(
             (res) => {
                 console.log(res);
-                observer.next(res.json());
+                observer.next(res);
             },
             (err: HttpErrorResponse) => {
                 observer.next(err.message);
             });
-        });*/
+        });
     }
 
 

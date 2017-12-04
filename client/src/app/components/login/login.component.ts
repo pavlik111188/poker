@@ -65,14 +65,16 @@ export class LoginComponent implements OnInit {
             this.userService.login(user)
                 .subscribe(
                     data => {
-                        if (data && data.token) {
+                        console.log(data);
+                        if (data) {
                             // save token to local storage
-                            this.authenticationService.token = data.token;
-                            localStorage.setItem('currentUser', JSON.stringify({ token: data.token }));
-                        }
-                        this.router.navigate(['/']);
+                            this.authenticationService.token = data['token'];
+                            localStorage.setItem('currentUser', JSON.stringify({ token: data['token'] }));
+                            this.router.navigate(['/']);
+                        }               
                     },
                     error => {
+                        console.log(error);
                         this.flashMessagesService.show(error, {cssClass: 'alert-danger', timeout: 3000});
                         this.loading = false;
                     });

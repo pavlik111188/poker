@@ -4,22 +4,26 @@
             <div class="chat_header">
                 добавить новый стол
             </div>
+            <form [formGroup]="newTableForm">
+              <div [ngClass]="{'error': newTableForm.controls['name'].errors && !newTableForm.controls['name'].pristine}">
+                <input type="text" formControlName="name" placeholder="Введите название стола" required>
+                <div *ngIf="newTableForm.controls['name'].errors && !newTableForm.controls['name'].pristine" class="error-msg">
+                  <div [hidden]="!newTableForm.controls['name'].errors.required">Название обязателен.</div>
+                  <div [hidden]="!newTableForm.controls['name'].errors.minlength">Должно быть минимум 3 символа.</div>
+                </div>
+              </div>
+              <img *ngIf="loading" src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA==" />
+              <button *ngIf="!newTableForm.invalid && !loading" class="btn btn-primary" (click)="newTable();">Добавить</button>
+            </form>
         </div>
     </div>
 
     <div class="col-md-6 col-xs-12 text-center align-self-center">
         <div class="main_page_content">
-            <div class="row buttons_area">
-                <div class="col-4">
-                    <button>открытые столы</button>
-                </div>
-                <div class="col-4">
-                    <button>создать игру</button>
-                </div>
-                <div class="col-4">
-                    <button>турниры</button>
-                </div>
-            </div>
+            <h3>Столы</h3>
+            <ul *ngIf="tableList.length > 0" class="list-group">
+              <li *ngFor="let table of tableList" class="list-group-item text-left"><a href="#">{{ table.name }} <i class="fa fa-heart-o float-right"></i></a></li>
+            </ul>
         </div>
     </div>
 

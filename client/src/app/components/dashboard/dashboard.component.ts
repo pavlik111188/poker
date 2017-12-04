@@ -1,6 +1,6 @@
 import { Component, OnChanges, SimpleChanges, Input } from '@angular/core';
 import { TableService } from '../../services/table.service';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { patternValidator } from '../../shared/pattern-validator';
 
 @Component({
@@ -11,6 +11,10 @@ import { patternValidator } from '../../shared/pattern-validator';
 export class DashboardComponent implements OnChanges {
 
 	tableName: string;
+  tableList = [];
+  newTableForm: FormGroup;
+  loading: boolean = false;
+
 
   constructor(private tableService: TableService) { }
 
@@ -19,16 +23,40 @@ export class DashboardComponent implements OnChanges {
   }
 
   ngOnInit() {
-  	
+    this.getTableList();
+    this.createForm(); 	
   }
 
   newTable() {
-  	this.tableService.createNewTable(this.tableName).subscribe((res) => {
-  		console.log(res);
+    this.loading = true;
+  	this.tableService.createNewTable(this.newTableForm.value.name).subscribe((res) => {
+  		if (res['success']) {
+        this.getTableList();
+        this.createForm();
+        this.loading = false;
+      }
+      console.log(res);
   	},
   	(error) => {
+      this.loading = false;
   		console.log(error);
   	});
+  }
+
+  getTableList() {
+    this.tableService.tableList().subscribe((res) => {
+      if (res['success']) {
+        this.tableList = res['table_list'];
+      } else {
+
+      }
+    });
+  }
+
+  private createForm() {
+      this.newTableForm = new FormGroup({
+        name: new FormControl('', [Validators.required, Validators.minLength(3)]) 
+      });
   }
 
 }

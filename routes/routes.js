@@ -75,6 +75,23 @@ router.post('/add_table',  passport.authenticate('jwt', { session: false}), func
     }    
 });
 
+router.get('/table_list', passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        Table.find(function(err, table_list) {
+            if (err) throw err;
+            if (!table_list) {
+                return res.status(403).send({success: false, msg: 'Tables can not receive. '});
+            } else {
+                res.json({success: true, table_list: table_list});
+            }
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
 // route to authenticate a user (POST http://localhost:3000/api/login)
 router.post('/login', function( req, res, next ) {
     User.findOne({
@@ -150,7 +167,6 @@ router.get('/role', passport.authenticate('jwt', { session: false}), function(re
         return res.status(403).send({success: false, msg: 'No token provided.'});
     }
 });
-
 
 //Token for user authorization
 getToken = function (headers) {

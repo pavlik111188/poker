@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
@@ -16,6 +17,7 @@ import { AuthenticationService } from './services/authentication.service';
 import { UserService } from './services/user.service';
 import { ValidateService } from './services/validate.service';
 import { TableService } from './services/table.service';
+import { ChatService } from './services/chat.service';
 
 // Components
 import { NavbarComponent } from './components/navbar/navbar.component';
@@ -24,9 +26,12 @@ import { RegisterComponent } from './components/register/register.component';
 import { HomeComponent } from './components/home/home.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { ProfileComponent } from './components/profile/profile.component';
+import { TableComponent } from './components/table/table.component';
+import { ChatComponent } from './components/chat/chat.component';
 
 @NgModule({
   imports: [
+    NgbModule.forRoot(),
     BrowserModule,
     FormsModule,
     ReactiveFormsModule,
@@ -42,7 +47,9 @@ import { ProfileComponent } from './components/profile/profile.component';
     RegisterComponent,
     HomeComponent,
     DashboardComponent,
-    ProfileComponent
+    ProfileComponent,
+    TableComponent,
+    ChatComponent
   ],
 
   providers: [
@@ -50,7 +57,8 @@ import { ProfileComponent } from './components/profile/profile.component';
     AuthenticationService,
     UserService,
     ValidateService,
-    TableService
+    TableService,
+    ChatService
   ],
   bootstrap: [AppComponent]
 })

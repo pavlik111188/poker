@@ -41,7 +41,6 @@ export class LoginComponent implements OnInit {
     login() {
         this.loading = true;
         const user = {
-            name: this.name,
             email: this.email,
             password: this.password
         }
@@ -65,7 +64,6 @@ export class LoginComponent implements OnInit {
             this.userService.login(user)
                 .subscribe(
                     data => {
-                        console.log(data);
                         if (data) {
                             // save token to local storage
                             this.authenticationService.token = data['token'];

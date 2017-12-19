@@ -14,6 +14,7 @@ export class TableService {
     private domain = 'http://localhost:8085/';
     private newTableUrl = 'add_table';
     private getTableListUrl = 'table_list';
+    private getTableInfoUrl = 'table_info';
 
     constructor(
         private http: HttpClient,
@@ -38,6 +39,13 @@ export class TableService {
         const url = `${this.domain}${this.getTableListUrl}`;
         return this.http.get<Table>(url, {headers: headers})
             .map((response) => response);
+    }
+
+    getTableInfo(id: string) {
+        const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
+        const url = `${this.domain}${this.getTableInfoUrl}`;
+        return this.http.get<Table>(url, {headers: headers, params: {id: id}})
+            .map((response) => response as Table);
     }
 
 }

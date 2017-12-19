@@ -36,7 +36,6 @@ export class UserService {
         return new Observable(observer => {
             this.http.post<any>(url, user, { headers: headers }).subscribe(
             (res) => {
-                console.log(res);
                 observer.next(res);
             },
             (err: HttpErrorResponse) => {
@@ -58,7 +57,6 @@ export class UserService {
         return new Observable(observer => {
             this.http.post<any>(url, user, { headers: headers }).subscribe(
             (res) => {
-                console.log(res);
                 observer.next(res);
             },
             (err: HttpErrorResponse) => {

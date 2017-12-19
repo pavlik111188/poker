@@ -1,8 +1,8 @@
 export class Table {
     id: any;
     name: string;
-    ownerName: {
+    ownerEmail: {
         id: any;
-        name: string
+        email: string
     };
 }

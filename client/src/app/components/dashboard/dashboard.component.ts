@@ -1,6 +1,7 @@
 import { Component, OnChanges, SimpleChanges, Input } from '@angular/core';
 import { TableService } from '../../services/table.service';
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Router } from "@angular/router";
 import { patternValidator } from '../../shared/pattern-validator';
 
 @Component({
@@ -14,9 +15,12 @@ export class DashboardComponent implements OnChanges {
   tableList = [];
   newTableForm: FormGroup;
   loading: boolean = false;
+  queryParams: {
+      [k: string]: any;
+  }
 
 
-  constructor(private tableService: TableService) { }
+  constructor(private tableService: TableService, private router: Router) { }
 
   ngOnChanges(changes: SimpleChanges) {
     
@@ -35,7 +39,6 @@ export class DashboardComponent implements OnChanges {
         this.createForm();
         this.loading = false;
       }
-      console.log(res);
   	},
   	(error) => {
       this.loading = false;
@@ -55,8 +58,15 @@ export class DashboardComponent implements OnChanges {
 
   private createForm() {
       this.newTableForm = new FormGroup({
-        name: new FormControl('', [Validators.required, Validators.minLength(3)]) 
+        name: new FormControl('', [Validators.required, Validators.minLength(3)])
       });
   }
+
+  goToTable(id) {
+    this.router.navigate(['/table'], { queryParams: { table_id: id } });
+    window.history.pushState('','','table');
+  }
+
+  
 
 }

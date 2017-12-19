@@ -8,7 +8,7 @@
               <div [ngClass]="{'error': newTableForm.controls['name'].errors && !newTableForm.controls['name'].pristine}">
                 <input type="text" formControlName="name" placeholder="Введите название стола" required>
                 <div *ngIf="newTableForm.controls['name'].errors && !newTableForm.controls['name'].pristine" class="error-msg">
-                  <div [hidden]="!newTableForm.controls['name'].errors.required">Название обязателен.</div>
+                  <div [hidden]="!newTableForm.controls['name'].errors.required">Название обязательно.</div>
                   <div [hidden]="!newTableForm.controls['name'].errors.minlength">Должно быть минимум 3 символа.</div>
                 </div>
               </div>
@@ -18,11 +18,21 @@
         </div>
     </div>
 
-    <div class="col-md-6 col-xs-12 text-center align-self-center">
+    <div class="col-md-6 col-xs-12 align-self-center">
         <div class="main_page_content">
             <h3>Столы</h3>
             <ul *ngIf="tableList.length > 0" class="list-group">
-              <li *ngFor="let table of tableList" class="list-group-item text-left"><a href="#">{{ table.name }} <i class="fa fa-heart-o float-right"></i></a></li>
+                <li *ngFor="let table of tableList" class="list-group-item text-left">
+                    <a [routerLink]="['/table', table._id]">
+                        {{ table.name }} <i class="fa fa-heart-o float-right"></i>
+                    </a>
+                    <span class="table-owner">Стол добавил: <b>{{ table.ownerEmail }}</b></span>
+                </li>
+                <!-- <li *ngFor="let table of tableList" class="list-group-item text-left">
+                    <span (click)="goToTable(table._id)">
+                        {{ table.name }} <i class="fa fa-heart-o float-right"></i>
+                    </span>
+                </li> -->
             </ul>
         </div>
     </div>

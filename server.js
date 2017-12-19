@@ -16,11 +16,15 @@ var jwt         = require('jwt-simple');
 
 var routes      = require('./routes/routes');
 
+var chat = require('./routes/chat');
+
 // Use bluebird for new promises
 mongoose.Promise = require('bluebird');
 
 // CORS Middleware
 app.use(cors());
+
+
 
 // Body Pars Middleware
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -44,6 +48,8 @@ require('./config/passport')(passport);
 
 // connect the api routes under /api/*
 app.use('/', routes);
+
+app.use('/chat', chat);
 
 //Start the server
 app.listen(port, function () {

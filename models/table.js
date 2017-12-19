@@ -9,7 +9,7 @@ var TableSchema = new Schema({
         unique: false,
         required: true
     },
-    ownerName: {
+    ownerEmail: {
         type: String,
         unique: false,
         required: true

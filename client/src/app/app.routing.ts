@@ -12,6 +12,8 @@ import { RegisterComponent } from './components/register/register.component';
 import { HomeComponent } from './components/home/home.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { ProfileComponent } from './components/profile/profile.component';
+import { TableComponent } from './components/table/table.component';
+import { ChatComponent } from './components/chat/chat.component';
 
 // Consts
 import { RolesConst } from './consts/roles.const';
@@ -38,6 +40,15 @@ const routes: Routes = [
                 path: 'profile',
                 component: ProfileComponent
             },
+            {
+                path: 'chat',
+                component: ChatComponent
+            },
+            {
+                path: 'table/:id',
+                component: TableComponent,
+                data: [{isProd: true}]
+            }
         ],
         data: {
             'roles': [RolesConst.USER, RolesConst.ADMIN]

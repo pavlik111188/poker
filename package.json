@@ -14,7 +14,9 @@
     "mongoose": "*",
     "morgan": "*",
     "passport": "*",
-    "passport-jwt": "*"
+    "passport-jwt": "*",
+    "socket.io-client": "^2.0.4",
+    "socketio": "^1.0.0"
   },
   "author": "Pavel S"
 }

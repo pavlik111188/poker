@@ -59,7 +59,7 @@ router.post('/add_table',  passport.authenticate('jwt', { session: false}), func
             if (err) throw err;
             var newTable = new Table({
                 name: req.body.name,
-                ownerEmail: user.email
+                ownerEmail: decoded.user.email
             });
             //console.log('NewUser:', newUser);
             // Save the user
@@ -72,7 +72,7 @@ router.post('/add_table',  passport.authenticate('jwt', { session: false}), func
         });
     } else {
         return res.status(403).send({success: false, msg: 'No token provided.'});
-    }    
+    }
 });
 
 router.get('/table_list', passport.authenticate('jwt', { session: false}), function(req, res, next) {
@@ -182,6 +182,16 @@ router.get('/role', passport.authenticate('jwt', { session: false}), function(re
                 res.json({success: true, role: role});
             }
         });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.get('/user_info', passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        res.json({success: true, user: decoded.user});
     } else {
         return res.status(403).send({success: false, msg: 'No token provided.'});
     }

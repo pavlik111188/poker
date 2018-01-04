@@ -13,6 +13,7 @@ import {Router} from "@angular/router";
 export class NavbarComponent implements OnInit {
 
   isLogged: boolean = false;
+  currentUser: string = '';
 
   constructor(
       private authenticationService: AuthenticationService,
@@ -21,6 +22,14 @@ export class NavbarComponent implements OnInit {
     router.events.subscribe((val) => {
       if(JSON.parse(localStorage.getItem('currentUser'))) {
         this.isLogged = true;
+        if(localStorage.getItem('user_name')) {
+          this.currentUser = localStorage.getItem('user_name');
+        } else {
+          this.authenticationService.getUserInfo().subscribe(res => {
+            this.currentUser = res;
+          });
+        }
+
       } else {
         this.isLogged = false;
       }

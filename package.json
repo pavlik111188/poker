@@ -2,6 +2,9 @@
   "name": "Poker",
   "version": "0.0.1",
   "description": "Poker nodejs API",
+  "scripts": {
+    "run-dev": "node server.js"
+  },
   "dependencies": {
     "bcrypt": "^1.0.3",
     "bluebird": "*",

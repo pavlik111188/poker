@@ -21,6 +21,7 @@
         <li class="nav-item"><a class="nav-link" href="#">Правила игры</a></li>
         <li class="nav-item"><a class="nav-link" href="#">Игроков онлайн</a></li>
         <li class="nav-item"><a class="nav-link" href="#">Новости</a></li>
+        <li class="nav-item" *ngIf="isLogged">{{ currentUser }}</li>
         <li *ngIf="!isLogged" [routerLinkActive]="['active']" [routerLinkActiveOptions]="{exact:true}"><a [routerLink]="['/login']">Вход</a></li>
         <li *ngIf="!isLogged" [routerLinkActive]="['active']" [routerLinkActiveOptions]="{exact:true}"><a [routerLink]="['/register']">Регистрация</a></li>
         <li *ngIf="isLogged" [routerLinkActive]="['active']" [routerLinkActiveOptions]="{exact:true}"><a (click)="logout()">Выход</a></li>

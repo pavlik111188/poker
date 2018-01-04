@@ -32,7 +32,6 @@ export class UserService {
         const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
         // const options = new RequestOptions({ headers: headers });
         const url = `${this.domain}${this.signupUrl}`;
-        console.log('User:', user);
         return new Observable(observer => {
             this.http.post<any>(url, user, { headers: headers }).subscribe(
             (res) => {

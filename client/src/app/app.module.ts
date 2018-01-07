@@ -18,6 +18,7 @@ import { UserService } from './services/user.service';
 import { ValidateService } from './services/validate.service';
 import { TableService } from './services/table.service';
 import { ChatService } from './services/chat.service';
+import { CardService } from './services/card.service';
 
 // Components
 import { NavbarComponent } from './components/navbar/navbar.component';
@@ -58,7 +59,8 @@ import { ChatComponent } from './components/chat/chat.component';
     UserService,
     ValidateService,
     TableService,
-    ChatService
+    ChatService,
+    CardService
   ],
   bootstrap: [AppComponent]
 })

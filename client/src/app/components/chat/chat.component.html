@@ -1,11 +1,11 @@
 <div class="panel panel-primary" *ngIf="joinned; else joinroom">
   <div class="panel-heading">
       <span class="glyphicon glyphicon-comment"></span> {{ msgData.room }}
-      <div class="btn-group pull-right">
+      <!-- <div class="btn-group pull-right">
           <button type="button" class="btn btn-default btn-xs" (click)="logout()">
               Logout
           </button>
-      </div>
+      </div> -->
   </div>
   <div #scrollMe class="panel-body">
       <ul class="chat">

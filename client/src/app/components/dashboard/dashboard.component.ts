@@ -18,17 +18,18 @@ export class DashboardComponent implements OnChanges {
   queryParams: {
       [k: string]: any;
   }
+  chat: string = 'General';
 
 
   constructor(private tableService: TableService, private router: Router) { }
 
   ngOnChanges(changes: SimpleChanges) {
-    
+
   }
 
   ngOnInit() {
     this.getTableList();
-    this.createForm(); 	
+    this.createForm();
   }
 
   newTable() {
@@ -67,6 +68,6 @@ export class DashboardComponent implements OnChanges {
     window.history.pushState('','','table');
   }
 
-  
+
 
 }

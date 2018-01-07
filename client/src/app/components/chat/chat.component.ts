@@ -1,5 +1,6 @@
-import { Component, OnInit, AfterViewChecked, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewChecked, ElementRef, ViewChild, Input } from '@angular/core';
 import { ChatService } from '../../services/chat.service';
+import { TableService } from '../../services/table.service';
 import * as io from "socket.io-client";
 
 @Component({
@@ -11,26 +12,43 @@ export class ChatComponent implements OnInit, AfterViewChecked {
 
   @ViewChild('scrollMe') private myScrollContainer: ElementRef;
 
+  @Input('chat') chat: string;
   chats: any;
   joinned: boolean = false;
   newUser = { nickname: '', room: '' };
   msgData = { room: '', nickname: '', message: '' };
   socket = io('http://localhost:4000');
   user = localStorage.getItem("user_name");
+  roomName: string = '';
 
-  constructor(private chatService: ChatService) {}
+  constructor(private chatService: ChatService, private tableService: TableService) {}
 
   ngOnInit() {
     var user = localStorage.getItem("user_name");
-    console.log(user);
+    // console.log(user);
     if(user!==null) {
-      this.getChatByRoom("General");
-      this.msgData = { room: "General", nickname: user, message: '' }
+      if (this.chat !== 'General') {
+        this.tableService.getTableInfo(this.chat).subscribe((res) => {
+          if (res) {
+            let result = res["table_info"];
+            this.roomName = result.name;
+            this.getChatByRoom(this.roomName);
+            this.msgData = { room: this.roomName, nickname: user, message: '' }
+          }
+        },
+        (err) => {
+          console.log(err);
+        });
+      } else {
+        this.roomName = this.chat;
+        this.getChatByRoom(this.roomName);
+        this.msgData = { room: this.roomName, nickname: user, message: '' }
+      }
       this.joinned = true;
       this.scrollToBottom();
     }
     this.socket.on('new-message', function (data) {
-      if(data.message.room === "General") {
+      if(data.message.room === this.roomName) {
         this.chats.push(data.message);
         // this.msgData = { room: user.room, nickname: user.nickname, message: '' }
         this.scrollToBottom();
@@ -59,10 +77,10 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   joinRoom() {
     var date = new Date();
     localStorage.setItem("user", JSON.stringify(this.newUser));
-    this.getChatByRoom("General");
-    this.msgData = { room: "General", nickname: this.newUser.nickname, message: '' };
+    this.getChatByRoom(this.roomName);
+    this.msgData = { room: this.roomName, nickname: this.newUser.nickname, message: '' };
     this.joinned = true;
-    this.socket.emit('save-message', { room: "General", nickname: this.user, message: 'Join this room', updated_at: date });
+    this.socket.emit('save-message', { room: this.roomName, nickname: this.user, message: 'Join this room', updated_at: date });
   }
 
   sendMessage() {

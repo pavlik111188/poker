@@ -12,6 +12,7 @@ const config = require('../config/database'); // get db config file
 const User = require('../models/user'); // get the mongoose model
 const Role = require('../models/roles'); // get the mongoose model
 const Table = require('../models/table'); // get the mongoose model
+const Card = require('../models/card'); // get the mongoose model
 
 // test
 router.get('/test', function ( req, res, next) {
@@ -85,6 +86,23 @@ router.get('/table_list', passport.authenticate('jwt', { session: false}), funct
                 return res.status(403).send({success: false, msg: 'Tables can not receive. '});
             } else {
                 res.json({success: true, table_list: table_list});
+            }
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.get('/card_list', passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        Card.find(function(err, card_list) {
+            if (err) throw err;
+            if (!card_list) {
+                return res.status(403).send({success: false, msg: 'Cards can not receive. '});
+            } else {
+                res.json({success: true, card_list: card_list});
             }
         });
     } else {

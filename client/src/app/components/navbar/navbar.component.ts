@@ -19,13 +19,14 @@ export class NavbarComponent implements OnInit {
       private authenticationService: AuthenticationService,
       private router: Router
   ) {
-    router.events.subscribe((val) => {
+    /*router.events.subscribe((val) => {
       if(JSON.parse(localStorage.getItem('currentUser'))) {
         this.isLogged = true;
         if(localStorage.getItem('user_name')) {
           this.currentUser = localStorage.getItem('user_name');
         } else {
           this.authenticationService.getUserInfo().subscribe(res => {
+            console.log(res);
             this.currentUser = res;
           });
         }
@@ -34,7 +35,8 @@ export class NavbarComponent implements OnInit {
         this.isLogged = false;
       }
       //console.log('val ', JSON.parse(localStorage.getItem('currentUser')));
-    });
+    });*/
+    this.currentUser = 'Paolo';
   }
 
   ngOnInit() {

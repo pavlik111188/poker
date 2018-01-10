@@ -4,7 +4,7 @@ var mongoose = require('mongoose');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
-var Chat = require('../models/Chat.js');
+var Chat = require('../models/chat.js');
 
 server.listen(4000);
 

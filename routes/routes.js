@@ -20,6 +20,8 @@ router.get('/test', function ( req, res, next) {
    console.log('Worked!');
 });
 
+
+
 // create a new user account (POST http://localhost:8085/api/signup)
 router.post('/signup', function( req, res, next ) {
 
@@ -131,6 +133,7 @@ router.get('/table_info', passport.authenticate('jwt', { session: false}), funct
 
 // route to authenticate a user (POST http://localhost:3000/api/login)
 router.post('/login', function( req, res, next ) {
+
     User.findOne({
         email: req.body.email
     }, function( err, user ) {
@@ -139,15 +142,20 @@ router.post('/login', function( req, res, next ) {
         if (!user) {
             res.send({success: false, msg: 'Authentication failed. User not found:' + user });
         } else {
+
             // check if password matches
             user.comparePassword(req.body.password, function (err, isMatch) {
-                if (isMatch && !err) {
+
+                if (!(isMatch && !err)) {
+                    res.send({success: false, msg: 'Authentication failed. Wrong password.'});
+                } else {
                     // Token expires in X day
                     var expires = moment().add(7, 'days').valueOf();
                     // if user is found and password is right create a token
                     var token = jwt.encode({user, expires}, config.secret);
                     // return the information including token as JSON
-                    res.json({success: true, token: 'JWT ' + token,
+                    res.json({
+                        success: true, token: "Bearer " + token,
                         user: {
                             id: user.id,
                             name: user.name,
@@ -157,8 +165,6 @@ router.post('/login', function( req, res, next ) {
                             role: user.role
                         }
                     });
-                } else {
-                    res.send({success: false, msg: 'Authentication failed. Wrong password.'});
                 }
             });
         }
@@ -186,7 +192,11 @@ router.get('/dashboard', passport.authenticate('jwt', { session: false}), functi
 });
 
 router.get('/role', passport.authenticate('jwt', { session: false}), function(req, res, next) {
+
+
+
     var token = getToken(req.headers);
+
     if (token) {
         var decoded = jwt.decode(token, config.secret);
         Role.findOne({

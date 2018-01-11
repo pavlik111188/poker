@@ -11,8 +11,8 @@ export class ChatService {
 
   public token: string;
   private domain = 'http://localhost:8085/';
-  private getChatByRoomUrl = 'chat/';
-  private getTableListUrl = 'table_list';
+  private getChatByRoomUrl = 'chat/get_messages';
+  private saveMessageUrl = 'chat/';
   private getTableInfoUrl = 'table_info';
 
   constructor(
@@ -25,18 +25,25 @@ export class ChatService {
       this.token = currentUser && currentUser.token;
   }
 
-  getChatByRoom(room) {
+  /*getChatByRoom(room) {
       const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
-      const url = `${this.domain}${this.getChatByRoomUrl}${room}`;
-      return this.http.get(url, {headers: headers})
+      const url = `${this.domain}${this.getChatByRoomUrl}`;
+      return this.http.get(url, {headers: headers, params: room})
           .map((response) => response);
-  }
+  }*/
 
-  saveChat(data) {
+  getChatByRoom(data) {
       const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
       const url = `${this.domain}${this.getChatByRoomUrl}`;
       return this.http.post(url, data, {headers: headers})
           .map(response => response);
+  }
+
+  saveMessage(data) {
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
+    const url = `${this.domain}${this.saveMessageUrl}`;
+    return this.http.post(url, data, {headers: headers})
+      .map(response => response);
   }
 
   // tableList() {

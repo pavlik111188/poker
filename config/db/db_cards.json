@@ -1,0 +1,385 @@
+
+db.cards.insert(
+[
+  /* 1 */
+  {
+    "_id" : ObjectId("5a527f6df21560367d6b3222"),
+    "name" : "2d",
+    "rank" : 1,
+    "suit" : "diamond"
+  },
+  /* 2 */
+  {
+    "_id" : ObjectId("5a5281dbf21560367d6b32fc"),
+    "name" : "2h",
+    "rank" : 1,
+    "suit" : "heart"
+  },
+  /* 3 */
+  {
+    "_id" : ObjectId("5a528338f21560367d6b3372"),
+    "name" : "2c",
+    "rank" : 1,
+    "suit" : "club"
+  },
+  /* 4 */
+  {
+    "_id" : ObjectId("5a528365f21560367d6b3383"),
+    "name" : "2s",
+    "rank" : 1,
+    "suit" : "spade"
+  },
+  /* 5 */
+  {
+    "_id" : ObjectId("5a5283f0f21560367d6b33b4"),
+    "name" : "3s",
+    "rank" : 2,
+    "suit" : "spade"
+  },
+  /* 6 */
+  {
+    "_id" : ObjectId("5a5284dcf21560367d6b3405"),
+    "name" : "4s",
+    "rank" : 3,
+    "suit" : "spade"
+  },
+  /* 7 */
+  {
+    "_id" : ObjectId("5a5284fbf21560367d6b3412"),
+    "name" : "5s",
+    "rank" : 4,
+    "suit" : "spade"
+  },
+  /* 8 */
+  {
+    "_id" : ObjectId("5a52851af21560367d6b3421"),
+    "name" : "6s",
+    "rank" : 5,
+    "suit" : "spade"
+  },
+  /* 9 */
+  {
+    "_id" : ObjectId("5a52852df21560367d6b3427"),
+    "name" : "7s",
+    "rank" : 6,
+    "suit" : "spade"
+  },
+  /* 10 */
+  {
+    "_id" : ObjectId("5a528556f21560367d6b343a"),
+    "name" : "8s",
+    "rank" : 7,
+    "suit" : "spade"
+  },
+  /* 11 */
+  {
+    "_id" : ObjectId("5a528574f21560367d6b3444"),
+    "name" : "9s",
+    "rank" : 8,
+    "suit" : "spade"
+  },
+  /* 12 */
+  {
+    "_id" : ObjectId("5a5285bff21560367d6b3460"),
+    "name" : "10s",
+    "rank" : 9,
+    "suit" : "spade"
+  },
+  /* 13 */
+  {
+    "_id" : ObjectId("5a528642f21560367d6b3490"),
+    "name" : "jack_s",
+    "rank" : 10,
+    "suit" : "spade"
+  },
+  /* 14 */
+  {
+    "_id" : ObjectId("5a528663f21560367d6b349d"),
+    "name" : "queen_s",
+    "rank" : 11,
+    "suit" : "spade"
+  },
+  /* 15 */
+  {
+    "_id" : ObjectId("5a52868af21560367d6b34ae"),
+    "name" : "king_s",
+    "rank" : 12,
+    "suit" : "spade"
+  },
+  /* 16 */
+  {
+    "_id" : ObjectId("5a52869ff21560367d6b34b6"),
+    "name" : "ace_s",
+    "rank" : 13,
+    "suit" : "spade"
+  },
+  /* 17 */
+  {
+    "_id" : ObjectId("5a5286e4f21560367d6b34d1"),
+    "name" : "joker_black",
+    "rank" : 14,
+    "suit" : "black"
+  },
+  /* 18 */
+  {
+    "_id" : ObjectId("5a528716f21560367d6b34e5"),
+    "name" : "joker_red",
+    "rank" : 14,
+    "suit" : "red"
+  },
+  /* 19 */
+  {
+    "_id" : ObjectId("5a52875bf21560367d6b34ff"),
+    "name" : "3d",
+    "rank" : 2,
+    "suit" : "diamond"
+  },
+  /* 20 */
+  {
+    "_id" : ObjectId("5a528771f21560367d6b350a"),
+    "name" : "4d",
+    "rank" : 3,
+    "suit" : "diamond"
+  },
+  /* 21 */
+  {
+    "_id" : ObjectId("5a528795f21560367d6b3518"),
+    "name" : "5d",
+    "rank" : 4,
+    "suit" : "diamond"
+  },
+  /* 22 */
+  {
+    "_id" : ObjectId("5a5287a1f21560367d6b351c"),
+    "name" : "6d",
+    "rank" : 5,
+    "suit" : "diamond"
+  },
+  /* 23 */
+  {
+    "_id" : ObjectId("5a5287b7f21560367d6b3528"),
+    "name" : "7d",
+    "rank" : 6,
+    "suit" : "diamond"
+  },
+  /* 24 */
+  {
+    "_id" : ObjectId("5a5287c3f21560367d6b352c"),
+    "name" : "8d",
+    "rank" : 7,
+    "suit" : "diamond"
+  },
+  /* 25 */
+  {
+    "_id" : ObjectId("5a5287d3f21560367d6b3535"),
+    "name" : "9d",
+    "rank" : 8,
+    "suit" : "diamond"
+  },
+  /* 26 */
+  {
+    "_id" : ObjectId("5a5287eef21560367d6b3542"),
+    "name" : "10d",
+    "rank" : 9,
+    "suit" : "diamond"
+  },
+  /* 27 */
+  {
+    "_id" : ObjectId("5a52881df21560367d6b3553"),
+    "name" : "jack_d",
+    "rank" : 10,
+    "suit" : "diamond"
+  },
+  /* 28 */
+  {
+    "_id" : ObjectId("5a528832f21560367d6b355b"),
+    "name" : "queen_d",
+    "rank" : 11,
+    "suit" : "diamond"
+  },
+  /* 29 */
+  {
+    "_id" : ObjectId("5a528844f21560367d6b3563"),
+    "name" : "king_d",
+    "rank" : 12,
+    "suit" : "diamond"
+  },
+  /* 30 */
+  {
+    "_id" : ObjectId("5a528851f21560367d6b356a"),
+    "name" : "ace_d",
+    "rank" : 13,
+    "suit" : "diamond"
+  },
+  /* 31 */
+  {
+    "_id" : ObjectId("5a5288a2f21560367d6b3589"),
+    "name" : "3h",
+    "rank" : 2,
+    "suit" : "heart"
+  },
+  /* 32 */
+  {
+    "_id" : ObjectId("5a5288d3f21560367d6b359c"),
+    "name" : "4h",
+    "rank" : 3,
+    "suit" : "heart"
+  },
+  /* 33 */
+  {
+    "_id" : ObjectId("5a5288e1f21560367d6b35a2"),
+    "name" : "5h",
+    "rank" : 4,
+    "suit" : "heart"
+  },
+  /* 34 */
+  {
+    "_id" : ObjectId("5a5288eef21560367d6b35a7"),
+    "name" : "6h",
+    "rank" : 5,
+    "suit" : "heart"
+  },
+  /* 35 */
+  {
+    "_id" : ObjectId("5a5288fcf21560367d6b35b0"),
+    "name" : "7h",
+    "rank" : 6,
+    "suit" : "heart"
+  },
+  /* 36 */
+  {
+    "_id" : ObjectId("5a52890af21560367d6b35b4"),
+    "name" : "8h",
+    "rank" : 7,
+    "suit" : "heart"
+  },
+  /* 37 */
+  {
+    "_id" : ObjectId("5a528917f21560367d6b35bd"),
+    "name" : "9h",
+    "rank" : 8,
+    "suit" : "heart"
+  },
+  /* 38 */
+  {
+    "_id" : ObjectId("5a528928f21560367d6b35c4"),
+    "name" : "10h",
+    "rank" : 9,
+    "suit" : "heart"
+  },
+  /* 39 */
+  {
+    "_id" : ObjectId("5a52893bf21560367d6b35cd"),
+    "name" : "jack_h",
+    "rank" : 10,
+    "suit" : "heart"
+  },
+  /* 40 */
+  {
+    "_id" : ObjectId("5a52894ef21560367d6b35d5"),
+    "name" : "queen_h",
+    "rank" : 11,
+    "suit" : "heart"
+  },
+  /* 41 */
+  {
+    "_id" : ObjectId("5a528965f21560367d6b35df"),
+    "name" : "king_h",
+    "rank" : 12,
+    "suit" : "heart"
+  },
+  /* 42 */
+  {
+    "_id" : ObjectId("5a528975f21560367d6b35e8"),
+    "name" : "ace_h",
+    "rank" : 13,
+    "suit" : "heart"
+  },
+  /* 43 */
+  {
+    "_id" : ObjectId("5a52899bf21560367d6b35f7"),
+    "name" : "3c",
+    "rank" : 2,
+    "suit" : "club"
+  },
+  /* 44 */
+  {
+    "_id" : ObjectId("5a5289acf21560367d6b35fe"),
+    "name" : "4c",
+    "rank" : 3,
+    "suit" : "club"
+  },
+  /* 45 */
+  {
+    "_id" : ObjectId("5a5289b7f21560367d6b3604"),
+    "name" : "5c",
+    "rank" : 4,
+    "suit" : "club"
+  },
+  /* 46 */
+  {
+    "_id" : ObjectId("5a5289c3f21560367d6b360b"),
+    "name" : "6c",
+    "rank" : 5,
+    "suit" : "club"
+  },
+  /* 47 */
+  {
+    "_id" : ObjectId("5a5289d2f21560367d6b3611"),
+    "name" : "7c",
+    "rank" : 6,
+    "suit" : "club"
+  },
+  /* 48 */
+  {
+    "_id" : ObjectId("5a5289e1f21560367d6b3617"),
+    "name" : "8c",
+    "rank" : 7,
+    "suit" : "club"
+  },
+  /* 49 */
+  {
+    "_id" : ObjectId("5a5289f3f21560367d6b3620"),
+    "name" : "9c",
+    "rank" : 8,
+    "suit" : "club"
+  },
+  /* 50 */
+  {
+    "_id" : ObjectId("5a528a05f21560367d6b362a"),
+    "name" : "10c",
+    "rank" : 9,
+    "suit" : "club"
+  },
+  /* 51 */
+  {
+    "_id" : ObjectId("5a528a1bf21560367d6b3630"),
+    "name" : "jack_c",
+    "rank" : 10,
+    "suit" : "club"
+  },
+  /* 52 */
+  {
+    "_id" : ObjectId("5a528a2df21560367d6b363a"),
+    "name" : "queen_c",
+    "rank" : 11,
+    "suit" : "club"
+  },
+  /* 53 */
+  {
+    "_id" : ObjectId("5a528a3ef21560367d6b3641"),
+    "name" : "king_c",
+    "rank" : 12,
+    "suit" : "club"
+  },
+  /* 54 */
+  {
+    "_id" : ObjectId("5a528a49f21560367d6b3647"),
+    "name" : "ace_c",
+    "rank" : 13,
+    "suit" : "club"
+  }
+
+],
+{ ordered: false }
+)

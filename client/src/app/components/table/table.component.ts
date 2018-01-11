@@ -42,7 +42,7 @@ export class TableComponent implements OnInit {
 
   getCardList() {
     this.cardService.cardList().subscribe((res) => {
-      console.log(res);
+      // console.log(res);
     },
     (err) => {
       console.log(err);

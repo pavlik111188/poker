@@ -19,21 +19,25 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   msgData = { room: '', nickname: '', message: '' };
   socket = io('http://localhost:4000');
   user = localStorage.getItem("user_name");
+  email = localStorage.getItem("user_email");
   roomName: string = '';
+  roomTitle: string = '';
+  messages: any;
 
   constructor(private chatService: ChatService, private tableService: TableService) {}
 
   ngOnInit() {
-    var user = localStorage.getItem("user_name");
     // console.log(user);
-    if(user!==null) {
+
+    if(this.user !== null) {
       if (this.chat !== 'General') {
         this.tableService.getTableInfo(this.chat).subscribe((res) => {
           if (res) {
             let result = res["table_info"];
-            this.roomName = result.name;
-            this.getChatByRoom(this.roomName);
-            this.msgData = { room: this.roomName, nickname: user, message: '' }
+            this.roomName = result._id;
+            this.roomTitle = result.name;
+            this.getChatByRoom(this.roomName, this.roomTitle);
+
           }
         },
         (err) => {
@@ -41,19 +45,58 @@ export class ChatComponent implements OnInit, AfterViewChecked {
         });
       } else {
         this.roomName = this.chat;
-        this.getChatByRoom(this.roomName);
-        this.msgData = { room: this.roomName, nickname: user, message: '' }
+        this.roomTitle = "Чат";
+        this.getChatByRoom(this.roomName, this.roomTitle);
+
       }
       this.joinned = true;
       this.scrollToBottom();
     }
+
     this.socket.on('new-message', function (data) {
-      if(data.message.room === this.roomName) {
-        this.chats.push(data.message);
-        // this.msgData = { room: user.room, nickname: user.nickname, message: '' }
-        this.scrollToBottom();
+      this.messages.push(data.message);
+      this.scrollToBottom();
+      this.msgData = { room: this.roomName, nickname: this.user, message: '' };
+    }.bind(this));
+
+    // Whenever the server emits 'user joined', log it in the chat body
+    this.socket.on('user joined', function (data) {
+      console.log(data.username + ' joined');
+    }.bind(this));
+
+    // Whenever the server emits 'user left', log it in the chat body
+    this.socket.on('user left', function (data) {
+      console.log(data.username + ' left');
+    }.bind(this));
+
+    // Whenever the server emits 'typing', show the typing message
+    this.socket.on('typing', function (data) {
+    }.bind(this));
+
+    // Whenever the server emits 'stop typing', kill the typing message
+    this.socket.on('stop typing', function (data) {
+    }.bind(this));
+
+    this.socket.on('disconnect', function () {
+      this.socket.emit('disconnect', this.user);
+    }.bind(this));
+
+    this.socket.on('reconnect', function () {
+      console.log('you have been reconnected');
+      if (this.user) {
+        this.socket.emit('add user', this.user);
       }
     }.bind(this));
+
+    this.socket.on('reconnect_error', function () {
+      console.log('attempt to reconnect has failed');
+    }.bind(this));
+
+    this.socket.on('connect', function() {
+      // Connected, let's sign-up for to receive messages for this room
+      this.socket.emit('room', this.roomName);
+    }.bind(this));
+
   }
 
   ngAfterViewChecked() {
@@ -66,26 +109,40 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     } catch(err) { }
   }
 
-  getChatByRoom(room) {
-    this.chatService.getChatByRoom(room).subscribe((res) => {
-      this.chats = res;
+  getChatByRoom(room, title) {
+
+    let data = {room: room, title: title};
+
+    this.chatService.getChatByRoom(data).subscribe((res) => {
+      this.messages = res;
+      /*let chat = [];
+      if (this.chats.length < 1) {
+
+        this.chatService.saveChat(data).subscribe((res) => {
+          console.log(res);
+        });
+        console.log(res);
+      }*/
+      this.msgData = { room: this.roomName, nickname: this.user, message: '' };
+      this.socket.emit('add user', {user: this.user, email: this.email, room: this.roomName});
+
     }, (err) => {
       console.log(err);
     });
   }
 
   joinRoom() {
-    var date = new Date();
-    localStorage.setItem("user", JSON.stringify(this.newUser));
-    this.getChatByRoom(this.roomName);
-    this.msgData = { room: this.roomName, nickname: this.newUser.nickname, message: '' };
+    let date = new Date();
+    this.getChatByRoom(this.roomName, this.roomName);
     this.joinned = true;
-    this.socket.emit('save-message', { room: this.roomName, nickname: this.user, message: 'Join this room', updated_at: date });
+
+    // this.socket.emit('save-message', { room: this.roomName, nickname: this.user, message: 'Join this room', updated_at: date });
   }
 
   sendMessage() {
-    this.chatService.saveChat(this.msgData).subscribe((result) => {
-      this.socket.emit('save-message', result);
+    this.chatService.saveMessage(this.msgData).subscribe((result) => {
+      console.log(result);
+      this.socket.in(this.roomName).emit('save-message', result);
     }, (err) => {
       console.log(err);
     });

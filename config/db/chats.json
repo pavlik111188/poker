@@ -1,0 +1,2 @@
+{ "_id" : { "$oid" : "5a575e0134d3113891f2e326" }, "room" : "5a575c8dc16fa1368ab8d982", "title" : "Super Table", "__v" : 0 }
+{ "_id" : { "$oid" : "5a575e1c34d3113891f2e327" }, "room" : "General", "title" : "Чат", "__v" : 0 }

@@ -9,7 +9,8 @@ var Message = require('../models/message.js');
 var User = require('../models/user.js');
 var UserInChat = require('../models/user_in_chat.js');
 var clients = [];
-
+const passport	= require('passport');
+const jwt       = require('jwt-simple');
 
 server.listen(4000);
 
@@ -37,10 +38,6 @@ var numUsers = 0;
 
 io.on('connection', function (socket) {
     var addedUser = false;
-
-    socket.on('room', function(room) {
-        socket.join(room);
-    });
 
     socket.on('save-message', function (data) {
         io.emit('new-message', { message: data });
@@ -88,6 +85,7 @@ io.on('connection', function (socket) {
         if (addedUser) {
             --numUsers;
             // console.log('disconnect ', socket.username);
+
             removeFromChat(socket.username);
             // echo globally that this client has left
             socket.broadcast.emit('user left', {
@@ -123,6 +121,19 @@ router.post('/get_messages', function(req, res, next) {
     });
 });
 
+router.get('/get_users_in_chat', passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    UserInChat.find({
+        room: req.query.room
+    }, function(err, users) {
+        if (err) throw err;
+        if (res == null) {
+            return res.status(403).send({success: false, msg: 'No users in this table'});
+        } else {
+            res.json({success: true, users: users});
+        }
+    });
+})
+
 /* SAVE CHAT */
 router.post('/', function(req, res, next) {
   Message.create(req.body, function (err, post) {
@@ -145,18 +156,44 @@ function addUserToChat(data) {
                 if (err) return next(err);
                 // res.json(post);
             });
+        } else {
+            clients.push(res._id.toString());
         }
     });
 }
 
 function removeFromChat(data) {
-    UserInChat.remove({
+    UserInChat.findOne({
         room: data.room,
         email: data.email
-    }, function (err, post) {
-        if (err) return next(err);
-        // res.json(post);
+    }, function(err, res) {
+        if (err) throw err;
+        if (clients.indexOf(res._id.toString()) > -1) {
+            clients.splice(clients.indexOf(res._id.toString()), 1);
+        } else {
+            UserInChat.remove({
+                room: data.room,
+                email: data.email
+            }, function (err, post) {
+                if (err) return next(err);
+                // res.json(post);
+            });
+        }
     });
 }
+
+//Token for user authorization
+getToken = function (headers) {
+    if (headers && headers.authorization) {
+        var parted = headers.authorization.split(' ');
+        if (parted.length === 2) {
+            return parted[1];
+        } else {
+            return null;
+        }
+    } else {
+        return null;
+    }
+};
 
 module.exports = router;

@@ -5,6 +5,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/toPromise';
 
 import { AuthenticationService } from '../services/authentication.service';
+import { UsersInChat } from '../models/users_in_chat.model';
 
 @Injectable()
 export class ChatService {
@@ -13,6 +14,7 @@ export class ChatService {
   private domain = 'http://localhost:8085/';
   private getChatByRoomUrl = 'chat/get_messages';
   private saveMessageUrl = 'chat/';
+  private getUsersInChatUrl = 'chat/get_users_in_chat';
   private getTableInfoUrl = 'table_info';
 
   constructor(
@@ -44,6 +46,13 @@ export class ChatService {
     const url = `${this.domain}${this.saveMessageUrl}`;
     return this.http.post(url, data, {headers: headers})
       .map(response => response);
+  }
+
+  getUsersInChat(room) {
+      const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
+      const url = `${this.domain}${this.getUsersInChatUrl}`;
+      return this.http.get<UsersInChat>(url, {headers: headers, params: {room: room}})
+          .map((response) => response as UsersInChat);
   }
 
   // tableList() {

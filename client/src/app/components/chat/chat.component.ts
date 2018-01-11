@@ -23,6 +23,7 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   roomName: string = '';
   roomTitle: string = '';
   messages: any;
+  usersInChat: number;
 
   constructor(private chatService: ChatService, private tableService: TableService) {}
 
@@ -54,19 +55,22 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     }
 
     this.socket.on('new-message', function (data) {
-      this.messages.push(data.message);
-      this.scrollToBottom();
-      this.msgData = { room: this.roomName, nickname: this.user, message: '' };
+      // console.log('data ', data.message.room);
+      if (data.message.room == this.roomName) {
+        this.messages.push(data.message);
+        this.scrollToBottom();
+        this.msgData = { room: this.roomName, nickname: this.user, message: '' };
+      }
     }.bind(this));
 
     // Whenever the server emits 'user joined', log it in the chat body
     this.socket.on('user joined', function (data) {
-      console.log(data.username + ' joined');
+      this.getUsersInChat(data.username.room);
     }.bind(this));
 
     // Whenever the server emits 'user left', log it in the chat body
     this.socket.on('user left', function (data) {
-      console.log(data.username + ' left');
+      this.getUsersInChat(data.username.room);
     }.bind(this));
 
     // Whenever the server emits 'typing', show the typing message
@@ -78,23 +82,18 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     }.bind(this));
 
     this.socket.on('disconnect', function () {
-      this.socket.emit('disconnect', this.user);
+      this.socket.emit('disconnect ', this.user);
     }.bind(this));
 
     this.socket.on('reconnect', function () {
       console.log('you have been reconnected');
       if (this.user) {
-        this.socket.emit('add user', this.user);
+        this.socket.emit('add user ', this.user);
       }
     }.bind(this));
 
     this.socket.on('reconnect_error', function () {
       console.log('attempt to reconnect has failed');
-    }.bind(this));
-
-    this.socket.on('connect', function() {
-      // Connected, let's sign-up for to receive messages for this room
-      this.socket.emit('room', this.roomName);
     }.bind(this));
 
   }
@@ -124,8 +123,8 @@ export class ChatComponent implements OnInit, AfterViewChecked {
         console.log(res);
       }*/
       this.msgData = { room: this.roomName, nickname: this.user, message: '' };
-      this.socket.emit('add user', {user: this.user, email: this.email, room: this.roomName});
-
+      this.socket.emit('add user', {user: this.user, email: this.email, room: room});
+      this.getUsersInChat(room);
     }, (err) => {
       console.log(err);
     });
@@ -141,8 +140,7 @@ export class ChatComponent implements OnInit, AfterViewChecked {
 
   sendMessage() {
     this.chatService.saveMessage(this.msgData).subscribe((result) => {
-      console.log(result);
-      this.socket.in(this.roomName).emit('save-message', result);
+       this.socket.emit('save-message', result);
     }, (err) => {
       console.log(err);
     });
@@ -154,6 +152,19 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     // this.socket.emit('save-message', { room: "General", nickname: user, message: 'Left this room', updated_at: date });
     // localStorage.removeItem("user_name");
     // this.joinned = false;
+  }
+
+  getUsersInChat(room) {
+    console.log('room: ', room);
+    this.chatService.getUsersInChat(room).subscribe((res) => {
+      if (res) {
+        this.usersInChat = res['users'].length;
+        console.log('res: ', res);
+      }
+    },
+    (err) => {
+      console.log(err);
+    });
   }
 
 }

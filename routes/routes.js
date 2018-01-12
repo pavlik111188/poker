@@ -13,6 +13,7 @@ const User = require('../models/user'); // get the mongoose model
 const Role = require('../models/roles'); // get the mongoose model
 const Table = require('../models/table'); // get the mongoose model
 const Card = require('../models/card'); // get the mongoose model
+const Game = require('../models/game'); // get the mongoose model
 
 // test
 router.get('/test', function ( req, res, next) {
@@ -220,6 +221,22 @@ router.get('/user_info', passport.authenticate('jwt', { session: false}), functi
     if (token) {
         var decoded = jwt.decode(token, config.secret);
         res.json({success: true, user: decoded.user});
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.get('/games', passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        Game.find(function(err, game_list) {
+            if (err) throw err;
+            if (!game_list) {
+                return res.status(403).send({success: false, msg: 'Games can not receive. '});
+            } else {
+                res.json({success: true, game_list: game_list});
+            }
+        });
     } else {
         return res.status(403).send({success: false, msg: 'No token provided.'});
     }

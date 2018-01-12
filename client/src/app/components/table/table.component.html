@@ -3,11 +3,11 @@
     <div class="col-md-3 col-xs-12">
       <form [formGroup]="newGameForm">
         <div class="form-group" [ngClass]="{'error': newGameForm.controls['game'].errors && !newGameForm.controls['game'].pristine}">
-          <label for="exampleSelect1">Выберите игру</label>
+          <label for="game">Выберите игру</label>
           <select formControlName="game" id="game" name="game" class="form-control">
               <option value="">Выберите игру из списка</option>
               <option *ngFor="let game of games" [ngValue]="game">
-                {{game }}
+                {{game.name }}
               </option>
           </select>
           <div *ngIf="newGameForm.controls['game'].errors && !newGameForm.controls['game'].pristine" class="error-msg">
@@ -19,12 +19,12 @@
       </form>
     </div>
     <div class="col-md-9 col-xs-12">
-
+      <app-playground></app-playground>
     </div>
   </div>
 </div>
 <div class="row">
   <div class="col-md-12">
-    <app-chat [chat] = tableId></app-chat>
+    <app-chat [chat] = "tableId" (users_count) = "countUsers($event)"></app-chat>
   </div>
 </div>

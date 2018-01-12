@@ -19,6 +19,7 @@ import { ValidateService } from './services/validate.service';
 import { TableService } from './services/table.service';
 import { ChatService } from './services/chat.service';
 import { CardService } from './services/card.service';
+import { GameService } from './services/game.service';
 
 // Components
 import { NavbarComponent } from './components/navbar/navbar.component';
@@ -29,6 +30,7 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { TableComponent } from './components/table/table.component';
 import { ChatComponent } from './components/chat/chat.component';
+import { PlaygroundComponent } from './components/playground/playground.component';
 
 @NgModule({
   imports: [
@@ -50,7 +52,8 @@ import { ChatComponent } from './components/chat/chat.component';
     DashboardComponent,
     ProfileComponent,
     TableComponent,
-    ChatComponent
+    ChatComponent,
+    PlaygroundComponent
   ],
 
   providers: [
@@ -60,7 +63,8 @@ import { ChatComponent } from './components/chat/chat.component';
     ValidateService,
     TableService,
     ChatService,
-    CardService
+    CardService,
+    GameService
   ],
   bootstrap: [AppComponent]
 })

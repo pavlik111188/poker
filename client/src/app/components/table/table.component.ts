@@ -4,6 +4,8 @@ import { Observable } from 'rxjs/Observable';
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { TableService } from '../../services/table.service';
 import { CardService } from '../../services/card.service';
+import { ChatService } from '../../services/chat.service';
+import { GameService } from '../../services/game.service';
 import 'rxjs/add/operator/map';
 
 @Component({
@@ -15,13 +17,15 @@ export class TableComponent implements OnInit {
 
   tableId: string;
   newGameForm: FormGroup;
-  games: any = ['Дурак'];
+  games: any = [];
   game: string;
+  usersInTable: number;
 
   constructor(
     private route: ActivatedRoute,
     private tableService: TableService,
-    private cardService: CardService
+    private cardService: CardService,
+    private gameService: GameService
   ) { }
 
   ngOnInit() {
@@ -32,6 +36,7 @@ export class TableComponent implements OnInit {
 		});
     this.getCardList();
     this.createForm();
+    this.getGameList();
   }
 
   getTableInfo(id: string) {
@@ -53,6 +58,30 @@ export class TableComponent implements OnInit {
       this.newGameForm = new FormGroup({
         game: new FormControl('', [Validators.required])
       });
+  }
+
+  getGameList() {
+    this.gameService.gameList().subscribe((res) => {
+        // console.log(res);
+        if (res['success']) {
+          this.games = res['game_list'];
+        }
+      },
+      (err) => {
+        console.log(err);
+      });
+  }
+
+  countUsers(event) {
+    this.usersInTable = event;
+  }
+
+  newGame() {
+    this.game = this.newGameForm.controls.game.value.name;
+    if (this.usersInTable > 1) {
+      console.log(this.game);
+    }
+    // if (this.newGameForm.controls['game'])
   }
 
 }

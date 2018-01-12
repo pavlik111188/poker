@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewChecked, ElementRef, ViewChild, Input } from '@angular/core';
+import { Component, OnInit, AfterViewChecked, ElementRef, ViewChild, Input, Output, EventEmitter } from '@angular/core';
 import { ChatService } from '../../services/chat.service';
 import { TableService } from '../../services/table.service';
 import * as io from "socket.io-client";
@@ -13,6 +13,9 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   @ViewChild('scrollMe') private myScrollContainer: ElementRef;
 
   @Input('chat') chat: string;
+
+  @Output() users_count: EventEmitter<any> = new EventEmitter();
+
   chats: any;
   joinned: boolean = false;
   newUser = { nickname: '', room: '' };
@@ -159,6 +162,7 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     this.chatService.getUsersInChat(room).subscribe((res) => {
       if (res) {
         this.usersInChat = res['users'].length;
+        this.users_count.emit(this.usersInChat);
         console.log('res: ', res);
       }
     },

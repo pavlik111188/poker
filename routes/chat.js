@@ -34,23 +34,41 @@ server.listen(4000);
 
 // Chatroom
 
-var numUsers = 0;
+/*var numUsers = 0;
 
 io.on('connection', function (socket) {
     var addedUser = false;
 
+    //:JOIN:Client Supplied Room
+    socket.on('subscribe',function(room){
+        try{
+            console.log('[socket]','join room :',room);
+            console.log('user joined', socket.id);
+            socket.join(room);
+            socket.to(room).emit('user joined', socket.id);
+        }catch(e){
+            console.log('[error]','join room :',e);
+
+            socket.emit('error','couldnt perform requested action');
+        }
+    });
+
+    //:LEAVE:Client Supplied Room
+    socket.on('unsubscribe',function(room){
+        try{
+            console.log('[socket]','leave room :', room);
+            socket.leave(room);
+            socket.to(room).emit('user left', socket.id);
+        }catch(e){
+
+            console.log('[error]','leave room :', e);
+            socket.emit('error','couldnt perform requested action');
+        }
+    });
+
     socket.on('save-message', function (data) {
         io.emit('new-message', { message: data });
     });
-
-    // when the client emits 'new message', this listens and executes
-    /*socket.on('new message', function (data) {
-        // we tell the client to execute 'new message'
-        socket.broadcast.emit('new message', {
-            username: socket.username,
-            message: data
-        });
-    });*/
 
     // when the client emits 'add user', this listens and executes
     socket.on('add user', function (username) {
@@ -60,10 +78,11 @@ io.on('connection', function (socket) {
         ++numUsers;
         addedUser = true;
         // echo globally (all clients) that a person has connected
-        socket.broadcast.emit('user joined', {
+        socket.emit('user joined', {
             username: socket.username,
             numUsers: numUsers
         });
+        socket.to(socket.username.room).emit('event', 'content');
     });
 
     // when the client emits 'typing', we broadcast it to others
@@ -88,13 +107,78 @@ io.on('connection', function (socket) {
 
             removeFromChat(socket.username);
             // echo globally that this client has left
-            socket.broadcast.emit('user left', {
+            socket.emit('user left', {
                 username: socket.username,
                 numUsers: numUsers
             });
         }
     });
+});*/
+
+
+// New socket io
+// usernames which are currently connected to the chat
+var usernames = {};
+
+// rooms which are currently available in chat
+var rooms = [];
+
+io.sockets.on('connection', function (socket) {
+
+    // socket.emit('connect');
+
+    // when the client emits 'adduser', this listens and executes
+    socket.on('adduser', function(data){
+        // store the username in the socket session for this client
+        socket.username = data.user;
+        socket.email = data.email;
+        // store the room name in the socket session for this client
+        socket.room = data.room;
+        // add the client's username to the global list
+        usernames[data.user] = data.user;
+        // send client to room
+        socket.join(data.room);
+        // echo to client they've connected
+        // socket.emit('updatechat', data);
+        // echo to room 1 that a person has connected to their room
+        // socket.broadcast.to(data.room).emit('updatechat', data);
+        socket.emit('updaterooms', rooms, data.room);
+    });
+
+    // when the client emits 'sendchat', this listens and executes
+    socket.on('sendchat', function (data) {
+        // we tell the client to execute 'updatechat' with 2 parameters
+        io.sockets.in(socket.room).emit('updatechat', data);
+    });
+
+    socket.on('switchRoom', function(newroom){
+        // leave the current room (stored in session)
+        socket.leave(socket.room);
+        removeFromChat({'room' : socket.room, 'email' : socket.email});
+        // join new room, received as function parameter
+        socket.join(newroom);
+        addUserToChat({'room' : socket.room, 'email' : socket.email});
+        // socket.emit('updatechat', 'SERVER', 'you have connected to '+ newroom);
+        // sent message to OLD room
+        // socket.broadcast.to(socket.room).emit('updatechat', 'SERVER', socket.username+' has left this room');
+        // update socket session room title
+        socket.room = newroom;
+        // socket.broadcast.to(newroom).emit('updatechat', 'SERVER', socket.username+' has joined this room');
+        socket.emit('updaterooms', rooms, newroom);
+    });
+
+    // when the user disconnects.. perform this
+    socket.on('disconnect', function(){
+        // remove the username from global usernames list
+        delete usernames[socket.username];
+        // update list of users in chat, client-side
+        io.sockets.emit('updateusers', usernames);
+        // echo globally that this client has left
+        // socket.broadcast.emit('updatechat', 'SERVER', socket.username + ' has disconnected');
+        socket.leave(socket.room);
+    });
 });
+
 
 /* Get messages by room */
 router.post('/get_messages', function(req, res, next) {
@@ -136,6 +220,7 @@ router.get('/get_users_in_chat', passport.authenticate('jwt', { session: false})
 
 /* SAVE CHAT */
 router.post('/', function(req, res, next) {
+    console.log('post: ', req.body);
   Message.create(req.body, function (err, post) {
     if (err) return next(err);
     res.json(post);
@@ -163,21 +248,27 @@ function addUserToChat(data) {
 }
 
 function removeFromChat(data) {
+    console.log('data ', data);
+    console.log('clients ', clients);
     UserInChat.findOne({
         room: data.room,
         email: data.email
     }, function(err, res) {
         if (err) throw err;
-        if (clients.indexOf(res._id.toString()) > -1) {
-            clients.splice(clients.indexOf(res._id.toString()), 1);
-        } else {
-            UserInChat.remove({
-                room: data.room,
-                email: data.email
-            }, function (err, post) {
-                if (err) return next(err);
-                // res.json(post);
-            });
+        console.log('res ', res);
+        if (res != null) {
+            if (clients.indexOf(res._id.toString()) > -1) {
+                clients.splice(clients.indexOf(res._id.toString()), 1);
+            } else {
+                console.log('============= else ============');
+                UserInChat.remove({
+                    room: data.room,
+                    email: data.email
+                }, function (err, post) {
+                    if (err) return next(err);
+                    // res.json(post);
+                });
+            }
         }
     });
 }

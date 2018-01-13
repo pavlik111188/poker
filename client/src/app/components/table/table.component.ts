@@ -7,6 +7,7 @@ import { CardService } from '../../services/card.service';
 import { ChatService } from '../../services/chat.service';
 import { GameService } from '../../services/game.service';
 import 'rxjs/add/operator/map';
+import { FlashMessagesService } from 'angular2-flash-messages';
 
 @Component({
   selector: 'app-table',
@@ -25,6 +26,7 @@ export class TableComponent implements OnInit {
     private route: ActivatedRoute,
     private tableService: TableService,
     private cardService: CardService,
+    private flashMessagesService: FlashMessagesService,
     private gameService: GameService
   ) { }
 
@@ -80,6 +82,8 @@ export class TableComponent implements OnInit {
     this.game = this.newGameForm.controls.game.value.name;
     if (this.usersInTable > 1) {
       console.log(this.game);
+    } else {
+      this.flashMessagesService.show('В данной игре должно быть минимум два игрока', {cssClass: 'alert-danger', timeout: 3000});
     }
     // if (this.newGameForm.controls['game'])
   }

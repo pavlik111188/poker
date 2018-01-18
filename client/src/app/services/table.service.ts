@@ -15,6 +15,7 @@ export class TableService {
     private newTableUrl = 'add_table';
     private getTableListUrl = 'table_list';
     private getTableInfoUrl = 'table_info';
+    private removeTableUrl = 'remove_table';
 
     constructor(
         private http: HttpClient,
@@ -27,11 +28,19 @@ export class TableService {
     }
 
     // Adding a new table
-    createNewTable(name: string) {
+    createNewTable(name: string, game: string) {
         const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
         const url = `${this.domain}${this.newTableUrl}`;
-        return this.http.post(url, {name: name}, {headers: headers})
+        return this.http.post(url, {name: name, game: game}, {headers: headers})
             .map(response => response);
+    }
+
+    // remove table by id
+    removeTable(data) {
+      const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
+      const url = `${this.domain}${this.removeTableUrl}`;
+      return this.http.post(url, {email: data.email, id: data.id}, {headers: headers})
+        .map(response => response);
     }
 
     tableList() {

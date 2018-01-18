@@ -1,6 +1,5 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
-var bcrypt = require('bcrypt');
 
 // set up a mongoose model
 var TableSchema = new Schema({
@@ -10,6 +9,11 @@ var TableSchema = new Schema({
         required: true
     },
     ownerEmail: {
+        type: String,
+        unique: false,
+        required: true
+    },
+    gameId: {
         type: String,
         unique: false,
         required: true

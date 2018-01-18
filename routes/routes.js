@@ -14,6 +14,9 @@ const Role = require('../models/roles'); // get the mongoose model
 const Table = require('../models/table'); // get the mongoose model
 const Card = require('../models/card'); // get the mongoose model
 const Game = require('../models/game'); // get the mongoose model
+const Message = require('../models/message'); // get the mongoose model
+const Chat = require('../models/chat'); // get the mongoose model
+const UserInChat = require('../models/user_in_chat'); // get the mongoose model
 
 // test
 router.get('/test', function ( req, res, next) {
@@ -61,19 +64,63 @@ router.post('/add_table',  passport.authenticate('jwt', { session: false}), func
             name: decoded.user.name
         }, function(err, user) {
             if (err) throw err;
-            var newTable = new Table({
-                name: req.body.name,
-                ownerEmail: decoded.user.email
+            Game.findOne({
+                name: req.body.game['name']
+            }, function (err, game) {
+                console.log(game);
+                if (err) throw err;
+                var newTable = new Table({
+                    name: req.body.name,
+                    ownerEmail: decoded.user.email,
+                    gameId: game._id
+                });
+                //console.log('NewUser:', newUser);
+                // Save the user
+                newTable.save(function(err) {
+                    if (err) {
+                        return res.json({success: false, msg: 'Table did not create.', error: err });
+                    }
+                    res.json({success: true, msg: 'Successful created new table.'});
+                });
             });
-            //console.log('NewUser:', newUser);
-            // Save the user
-            newTable.save(function(err) {
-                if (err) {
-                    return res.json({success: false, msg: 'Table did not create.', error: err });
-                }
-                res.json({success: true, msg: 'Successful created new table.'});
-            });
+
         });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+// remove table for the game (POST http://localhost:8085/api/remove_table)
+router.post('/remove_table',  passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        if (decoded.user.email == req.body.email) {
+            Table.remove({
+                _id: req.body.id
+            }, function (err) {
+                if (err) return next(err);
+                Chat.remove({
+                    room: req.body.id
+                }, function(err) {
+                    if (err) throw err;
+                    Message.remove({
+                        room: req.body.id
+                    }, function(err) {
+                        if (err) throw err;
+                        UserInChat.remove({
+                            room: req.body.id
+                        }, function(err) {
+                            if (err) throw err;
+
+                        });
+                    });
+                });
+                res.json({success: true, msg: 'Successful deleted table.'});
+            });
+        } else {
+            return res.json({success: false, msg: 'You are not owner of this table' });
+        }
     } else {
         return res.status(403).send({success: false, msg: 'No token provided.'});
     }
@@ -96,23 +143,6 @@ router.get('/table_list', passport.authenticate('jwt', { session: false}), funct
     }
 });
 
-router.get('/card_list', passport.authenticate('jwt', { session: false}), function(req, res, next) {
-    var token = getToken(req.headers);
-    if (token) {
-        var decoded = jwt.decode(token, config.secret);
-        Card.find(function(err, card_list) {
-            if (err) throw err;
-            if (!card_list) {
-                return res.status(403).send({success: false, msg: 'Cards can not receive. '});
-            } else {
-                res.json({success: true, card_list: card_list});
-            }
-        });
-    } else {
-        return res.status(403).send({success: false, msg: 'No token provided.'});
-    }
-});
-
 router.get('/table_info', passport.authenticate('jwt', { session: false}), function(req, res, next) {
     var token = getToken(req.headers);
     if (token) {
@@ -125,6 +155,23 @@ router.get('/table_info', passport.authenticate('jwt', { session: false}), funct
                 return res.status(403).send({success: false, msg: 'Tables can not receive. '});
             } else {
                 res.json({success: true, table_info: table_info});
+            }
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.get('/card_list', passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        Card.find(function(err, card_list) {
+            if (err) throw err;
+            if (!card_list) {
+                return res.status(403).send({success: false, msg: 'Cards can not receive. '});
+            } else {
+                res.json({success: true, card_list: card_list});
             }
         });
     } else {

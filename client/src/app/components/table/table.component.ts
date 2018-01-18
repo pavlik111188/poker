@@ -81,7 +81,7 @@ export class TableComponent implements OnInit {
   newGame() {
     this.game = this.newGameForm.controls.game.value.name;
     if (this.usersInTable > 1) {
-      console.log(this.game);
+      // console.log(this.game);
     } else {
       this.flashMessagesService.show('В данной игре должно быть минимум два игрока', {cssClass: 'alert-danger', timeout: 3000});
     }

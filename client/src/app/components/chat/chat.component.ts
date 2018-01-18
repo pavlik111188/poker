@@ -2,6 +2,7 @@ import { Component, OnInit, AfterViewChecked, ElementRef, ViewChild, Input, Outp
 import { ChatService } from '../../services/chat.service';
 import { TableService } from '../../services/table.service';
 import * as io from "socket.io-client";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-chat',
@@ -20,20 +21,26 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   joinned: boolean = false;
   newUser = { user: '', room: '' };
   msgData = { room: '', user: '', message: '' };
-  socket = io('http://localhost:4000');
+  socket: any;
   user = localStorage.getItem("user_name");
   email = localStorage.getItem("user_email");
   roomName: string = '';
   roomTitle: string = '';
   messages: any;
   usersInChat: number;
+  usersCount: any = [];
 
-  constructor(private chatService: ChatService, private tableService: TableService) {}
+  constructor(
+    private chatService: ChatService,
+    private tableService: TableService,
+    private router: Router) {
+  }
 
   ngOnInit() {
     // console.log(user);
 
     if(this.user !== null) {
+
       if (this.chat !== 'General') {
         this.tableService.getTableInfo(this.chat).subscribe((res) => {
           if (res) {
@@ -48,10 +55,10 @@ export class ChatComponent implements OnInit, AfterViewChecked {
           console.log(err);
         });
       } else {
+        this.socket = io('http://localhost:4000');
         this.roomName = this.chat;
         this.roomTitle = "Чат";
         this.getChatByRoom(this.roomName, this.roomTitle);
-
       }
       this.joinned = true;
       this.scrollToBottom();
@@ -109,26 +116,35 @@ export class ChatComponent implements OnInit, AfterViewChecked {
       this.socket.emit('adduser', {user: this.user, email: this.email, room: 'General'});
     }.bind(this));*/
     // listener, whenever the server emits 'updatechat', this updates the chat body
+    this.socket.on('get_users_count', function (data) {
+      // console.log('get_users_count: ', data);
+    }.bind(this));
+
     this.socket.on('updatechat', function (data) {
-      console.log('data: ', data);
       this.messages.push(data);
-      console.log('this.messages: ', this.messages);
       this.scrollToBottom();
       this.msgData = { room: this.roomName, user: this.user, message: '' };
     }.bind(this));
 
     // listener, whenever the server emits 'updaterooms', this updates the room the client is in
-    this.socket.on('updaterooms', function(rooms, current_room) {
-      /*$.each(rooms, function(key, value) {
-        if(value == current_room){
-          $('#rooms').append('<div>' + value + '</div>');
-        }
-        else {
-          $('#rooms').append('<div><a href="#" onclick="switchRoom(\''+value+'\')">' + value + '</a></div>');
-        }
-      });*/
-      console.log('current_room: ', current_room);
+    this.socket.on('updaterooms', function(data) {
+      // this.socket.emit('remove_from_chat', data);
+      this.getUsersInChat(data.room);
+    }.bind(this));
 
+    this.socket.on('add_to_chat', function (data) {
+      this.socket.emit('add_to_chat', data);
+      this.usersCount.push(data.email);
+      // console.log(this.usersCount);
+    }.bind(this));
+
+    this.socket.on('remove_from_chat', function (data) {
+      this.socket.emit('remove_from_chat', data);
+      if (this.usersCount.indexOf(data.email) > -1) {
+        this.usersCount.splice(this.usersCount.indexOf(data.email), 1);
+        // console.log(this.usersCount);
+      }
+      this.switchRoom({user: this.user, email: this.email, room: data.room});
     }.bind(this));
 
   }
@@ -146,17 +162,13 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   getChatByRoom(room, title) {
 
     let data = {room: room, title: title};
-
     this.chatService.getChatByRoom(data).subscribe((res) => {
       this.messages = res;
       this.msgData = { room: this.roomName, user: this.user, message: '' };
+
       this.socket.emit('adduser', {user: this.user, email: this.email, room: room});
-      /*this.socket.emit('add user', {user: this.user, email: this.email, room: room});
-      this.socket.emit('subscribe', room);*/
+      this.switchRoom({user: this.user, email: this.email, room: room});
 
-
-      this.getUsersInChat(room);
-      this.switchRoom(room);
     }, (err) => {
       console.log(err);
     });
@@ -164,7 +176,6 @@ export class ChatComponent implements OnInit, AfterViewChecked {
 
   joinRoom() {
     let date = new Date();
-    this.getChatByRoom(this.roomName, this.roomName);
     this.joinned = true;
 
     // this.socket.emit('save-message', { room: this.roomName, user: this.user, message: 'Join this room', updated_at: date });
@@ -173,8 +184,6 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   sendMessage() {
     this.chatService.saveMessage(this.msgData).subscribe((result) => {
        // this.socket.emit('save-message', result);
-      console.log(this.msgData);
-      console.log(result);
         this.socket.emit('sendchat', this.msgData);
     }, (err) => {
       console.log(err);
@@ -195,7 +204,6 @@ export class ChatComponent implements OnInit, AfterViewChecked {
       if (res) {
         this.usersInChat = res['users'].length;
         this.users_count.emit(this.usersInChat);
-        // console.log('res: ', res);
       }
     },
     (err) => {
@@ -204,6 +212,7 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   }
 
   switchRoom(room){
+    // console.log('switchRoom ', room);
     this.socket.emit('switchRoom', room);
   }
 

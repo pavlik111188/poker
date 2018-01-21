@@ -21,6 +21,7 @@ export class TableComponent implements OnInit {
   games: any = [];
   game: string;
   usersInTable: number;
+  start_game: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -37,13 +38,15 @@ export class TableComponent implements OnInit {
 			this.getTableInfo(params.id);
 		});
     this.getCardList();
-    this.createForm();
-    this.getGameList();
   }
 
   getTableInfo(id: string) {
   	this.tableService.getTableInfo(id).subscribe((res) => {
-  		// console.log(res);
+  		if (res['success']) {
+  		  let tableInfo = res['table_info'];
+  		  this.game = tableInfo.game;
+      }
+  	  console.log(res);
   	});
   }
 
@@ -56,36 +59,12 @@ export class TableComponent implements OnInit {
     });
   }
 
-  private createForm() {
-      this.newGameForm = new FormGroup({
-        game: new FormControl('', [Validators.required])
-      });
-  }
-
-  getGameList() {
-    this.gameService.gameList().subscribe((res) => {
-        // console.log(res);
-        if (res['success']) {
-          this.games = res['game_list'];
-        }
-      },
-      (err) => {
-        console.log(err);
-      });
-  }
-
   countUsers(event) {
     this.usersInTable = event;
   }
 
-  newGame() {
-    this.game = this.newGameForm.controls.game.value.name;
-    if (this.usersInTable > 1) {
-      // console.log(this.game);
-    } else {
-      this.flashMessagesService.show('В данной игре должно быть минимум два игрока', {cssClass: 'alert-danger', timeout: 3000});
-    }
-    // if (this.newGameForm.controls['game'])
+  isStartGame(event) {
+    this.start_game = event;
   }
 
 }

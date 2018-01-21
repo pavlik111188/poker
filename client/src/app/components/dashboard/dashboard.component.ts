@@ -63,6 +63,7 @@ export class DashboardComponent implements OnInit {
     this.tableService.tableList().subscribe((res) => {
       if (res['success']) {
         this.tableList = res['table_list'];
+        console.log(this.tableList);
       } else {
 
       }

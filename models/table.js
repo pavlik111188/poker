@@ -13,7 +13,7 @@ var TableSchema = new Schema({
         unique: false,
         required: true
     },
-    gameId: {
+    game: {
         type: String,
         unique: false,
         required: true

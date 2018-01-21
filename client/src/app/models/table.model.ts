@@ -3,6 +3,10 @@ export class Table {
     name: string;
     ownerEmail: {
         id: any;
-        email: string
+        email: string;
+    };
+    game: {
+        id: string;
+        name: string;
     };
 }

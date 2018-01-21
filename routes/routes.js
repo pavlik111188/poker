@@ -67,12 +67,11 @@ router.post('/add_table',  passport.authenticate('jwt', { session: false}), func
             Game.findOne({
                 name: req.body.game['name']
             }, function (err, game) {
-                console.log(game);
                 if (err) throw err;
                 var newTable = new Table({
                     name: req.body.name,
                     ownerEmail: decoded.user.email,
-                    gameId: game._id
+                    game: game.name
                 });
                 //console.log('NewUser:', newUser);
                 // Save the user

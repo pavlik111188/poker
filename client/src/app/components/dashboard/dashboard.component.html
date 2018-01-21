@@ -37,8 +37,10 @@
             <ul *ngIf="tableList.length > 0; else noTablesBlock" class="list-group">
                 <li *ngFor="let table of tableList" class="list-group-item text-left">
                     <a [routerLink]="['/table', table._id]">
-                        {{ table.name }} <i class="fa fa-heart-o float-right"></i>
+                        {{ table.name }}
                     </a>
+                    <br>
+                    Игра: {{ table.game }}
                     <span *ngIf="table.ownerEmail == currentUserEmail" class="table-owner">
                       <button class="btn btn-danger" (click)="removeTable(table._id, table.ownerEmail)">Удалить стол</button>
                     </span>

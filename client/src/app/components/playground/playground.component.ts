@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import {Component, OnInit, Input, EventEmitter, Output} from '@angular/core';
 
 @Component({
   selector: 'app-playground',
@@ -7,7 +7,9 @@ import { Component, OnInit, Input } from '@angular/core';
 })
 export class PlaygroundComponent implements OnInit {
 
-  @Input('chat') chat: string;
+  @Input('game') game: string;
+
+  @Output() start_game: EventEmitter<any> = new EventEmitter();
 
   constructor() { }
 

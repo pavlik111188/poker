@@ -1,6 +1,6 @@
 <div class="row">
   <div class="col-md-12">
-    <div class="col-md-3 col-xs-12">
+    <!--<div class="col-md-3 col-xs-12">
       <form [formGroup]="newGameForm">
         <div class="form-group" [ngClass]="{'error': newGameForm.controls['game'].errors && !newGameForm.controls['game'].pristine}">
           <label for="game">Выберите игру</label>
@@ -17,13 +17,13 @@
           <button *ngIf="!newGameForm.invalid && !loading" class="btn btn-primary" (click)="newGame();">Начать</button>
         </div>
       </form>
-    </div>
-    <div class="col-md-9 col-xs-12">
-      <app-playground></app-playground>
+    </div>-->
+    <div class="col-md-12 col-xs-12">
+      <app-playground [game]="game" (start_game)="isStartGame($event)"></app-playground>
     </div>
   </div>
 </div>
-<div class="row">
+<div *ngIf="start_game" class="row">
   <div class="col-md-12">
     <app-chat [chat] = "tableId" (users_count) = "countUsers($event)"></app-chat>
   </div>

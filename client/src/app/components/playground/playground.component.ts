@@ -11,6 +11,8 @@ export class PlaygroundComponent implements OnInit {
 
   @Output() start_game: EventEmitter<any> = new EventEmitter();
 
+  chairs: any = ['chair1','chair2','chair3','chair4','chair5','chair6'];
+
   constructor() { }
 
   ngOnInit() {

@@ -1,0 +1,15 @@
+.play-main {
+  width: 100%;
+  min-height: 560px;
+  background: url("/assets/img/table_bg.png") repeat-x center / contain;
+}
+
+.play-table {
+  width: 100%;
+  min-height: 560px;
+  background: url("/assets/img/table.png") no-repeat center / 75%;
+}
+
+.chear {
+
+}

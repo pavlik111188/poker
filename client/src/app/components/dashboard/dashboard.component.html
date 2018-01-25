@@ -1,80 +1,82 @@
-<div class="row content_main">
+<div class="container-fluid">
+  <div class="row content_main">
     <div class="col-md-3 col-xs-12">
-        <div class="chat_block">
-            <h3>
-                Добавить стол
-            </h3>
-            <form [formGroup]="newTableForm">
-              <div class="form-group" [ngClass]="{'error': newTableForm.controls['name'].errors && !newTableForm.controls['name'].pristine}">
-                <label for="game">Введите название стола</label>
-                <input class="form-control" type="text" formControlName="name" placeholder="Название стола" required>
-                <div *ngIf="newTableForm.controls['name'].errors && !newTableForm.controls['name'].pristine" class="error-msg">
-                  <div class="text-danger" [hidden]="!newTableForm.controls['name'].errors.required">Название обязательно.</div>
-                  <div class="text-danger" [hidden]="!newTableForm.controls['name'].errors.minlength">Должно быть минимум 3 символа.</div>
-                </div>
-              </div>
-              <div class="form-group" [ngClass]="{'error': newTableForm.controls['game'].errors && !newTableForm.controls['game'].pristine}">
-                <label for="game">Выберите игру</label>
-                <select formControlName="game" id="game" name="game" class="form-control">
-                  <option value="">Выберите игру из списка</option>
-                  <option *ngFor="let game of games" [ngValue]="game">
-                    {{game.name }}
-                  </option>
-                </select>
-                <div *ngIf="newTableForm.controls['game'].errors && !newTableForm.controls['game'].pristine" class="error-msg">
-                  <div class="text-danger" [hidden]="!newTableForm.controls['game'].errors.required">Выберите игру.</div>
-                </div>
-              </div>
-              <img *ngIf="loading" src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA==" />
-              <button *ngIf="!newTableForm.invalid && !loading" class="btn btn-primary" (click)="newTable();">Добавить</button>
-            </form>
-        </div>
+      <div class="chat_block">
+        <h3>
+          Добавить стол
+        </h3>
+        <form [formGroup]="newTableForm">
+          <div class="form-group" [ngClass]="{'error': newTableForm.controls['name'].errors && !newTableForm.controls['name'].pristine}">
+            <label for="game">Введите название стола</label>
+            <input class="form-control" type="text" formControlName="name" placeholder="Название стола" required>
+            <div *ngIf="newTableForm.controls['name'].errors && !newTableForm.controls['name'].pristine" class="error-msg">
+              <div class="text-danger" [hidden]="!newTableForm.controls['name'].errors.required">Название обязательно.</div>
+              <div class="text-danger" [hidden]="!newTableForm.controls['name'].errors.minlength">Должно быть минимум 3 символа.</div>
+            </div>
+          </div>
+          <div class="form-group" [ngClass]="{'error': newTableForm.controls['game'].errors && !newTableForm.controls['game'].pristine}">
+            <label for="game">Выберите игру</label>
+            <select formControlName="game" id="game" name="game" class="form-control">
+              <option value="">Выберите игру из списка</option>
+              <option *ngFor="let game of games" [ngValue]="game">
+                {{game.name }}
+              </option>
+            </select>
+            <div *ngIf="newTableForm.controls['game'].errors && !newTableForm.controls['game'].pristine" class="error-msg">
+              <div class="text-danger" [hidden]="!newTableForm.controls['game'].errors.required">Выберите игру.</div>
+            </div>
+          </div>
+          <img *ngIf="loading" src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA==" />
+          <button *ngIf="!newTableForm.invalid && !loading" class="btn btn-primary" (click)="newTable();">Добавить</button>
+        </form>
+      </div>
     </div>
 
     <div class="col-md-6 col-xs-12 align-self-center">
-        <div class="main_page_content">
-            <h3>Столы</h3>
-            <ul *ngIf="tableList.length > 0; else noTablesBlock" class="list-group">
-                <li *ngFor="let table of tableList" class="list-group-item text-left">
-                    <a [routerLink]="['/table', table._id]">
-                        {{ table.name }}
-                    </a>
-                    <br>
-                    Игра: {{ table.game }}
-                    <span *ngIf="table.ownerEmail == currentUserEmail" class="table-owner">
+      <div class="main_page_content">
+        <h3>Столы</h3>
+        <ul *ngIf="tableList.length > 0; else noTablesBlock" class="list-group">
+          <li *ngFor="let table of tableList" class="list-group-item text-left">
+            <a [routerLink]="['/table', table._id]">
+              {{ table.name }}
+            </a>
+            <br>
+            Игра: {{ table.game }}
+            <span *ngIf="table.ownerEmail == currentUserEmail" class="table-owner">
                       <button class="btn btn-danger" (click)="removeTable(table._id, table.ownerEmail)">Удалить стол</button>
                     </span>
-                    <span class="table-owner">Стол добавил: <b>{{ table.ownerEmail }}</b></span>
-                </li>
-            </ul>
-            <ng-template #noTablesBlock>
-              <ul class="list-group">
-                <li class="list-group-item text-left">
-                    Нет столов? Создайте первый стол!
-                </li>
-              </ul>
-            </ng-template>
-        </div>
+            <span class="table-owner">Стол добавил: <b>{{ table.ownerEmail }}</b></span>
+          </li>
+        </ul>
+        <ng-template #noTablesBlock>
+          <ul class="list-group">
+            <li class="list-group-item text-left">
+              Нет столов? Создайте первый стол!
+            </li>
+          </ul>
+        </ng-template>
+      </div>
     </div>
 
     <div class="col-md-3 col-xs-12 align-self-center chat">
-        <div class="chat_block">
-            <div class="chat_header">
-                <!--<img src="../../../assets/img/pencil.png" />чат-->
-            </div>
-            <app-chat [chat] = "chat"></app-chat>
+      <div class="chat_block">
+        <div class="chat_header">
+          <!--<img src="../../../assets/img/pencil.png" />чат-->
         </div>
+        <app-chat [chat] = "chat"></app-chat>
+      </div>
     </div>
     <footer>
-        <div class="row justify-content-center">
-            <div class="col-6">
-                <div class="row justify-content-start">
-                    <div class="col-4">
-                        <!--<img src="../../../assets/img/mail.png" />-->
-                        <!--<img src="../../../assets/img/rss.png" />-->
-                    </div>
-                </div>
+      <div class="row justify-content-center">
+        <div class="col-6">
+          <div class="row justify-content-start">
+            <div class="col-4">
+              <!--<img src="../../../assets/img/mail.png" />-->
+              <!--<img src="../../../assets/img/rss.png" />-->
             </div>
+          </div>
         </div>
+      </div>
     </footer>
+  </div>
 </div>

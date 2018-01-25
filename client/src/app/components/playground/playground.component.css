@@ -1,7 +1,7 @@
 .play-main {
   width: 100%;
-  min-height: 560px;
-  background: url("/assets/img/table_bg.png") repeat-x center / contain;
+  min-height: 100vh;
+  position: relative;
 }
 
 .play-table {
@@ -12,4 +12,46 @@
 
 .chear {
 
+}
+
+.player-container {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  top: 175px;
+  left: 40px;
+}
+
+.board-container {
+  background-image: url("/assets/img/bg.jpg");
+  width: 800px;
+  height: 600px;
+  position: absolute;
+}
+
+.rotate {
+  -webkit-transform: rotate(-90deg);
+  transform: rotate(-90deg);
+}
+
+@media (min-width: 768px) {
+  .play-main {
+    background: url("/assets/img/bg.jpg") no-repeat top / contain;
+    /*background-image: url("/assets/img/bg.jpg");*/
+  }
+}
+
+@media (max-width: 767px) {
+  .play-main:before {
+    background: url("/assets/img/bg.jpg") no-repeat top / contain;
+    -webkit-transform: rotate(90deg);
+    transform: rotate(90deg);
+    content: "";
+    position: absolute;
+    width: 800px;
+    height: 85%;
+    top: 30px;
+    left: -145px;
+    z-index: -1;
+  }
 }

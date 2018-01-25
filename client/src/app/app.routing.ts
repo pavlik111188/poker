@@ -9,7 +9,7 @@ import { AuthGuard } from './services/auth.guard';
 
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
-import { HomeComponent } from './components/home/home.component';
+import { LayoutComponent } from './components/layout/layout.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { TableComponent } from './components/table/table.component';
@@ -20,17 +20,28 @@ import { RolesConst } from './consts/roles.const';
 
 const routes: Routes = [
 
-    { path: 'register', component: RegisterComponent },
-    { path: 'login', component: LoginComponent },
+    {
+      path: 'table/:id',
+      component: TableComponent,
+      data: [{isProd: true}]
+    },
 
     {
         path: '',
-        component: HomeComponent,
+        component: LayoutComponent,
         children: [
             {
                 path: '',
                 redirectTo: '/dashboard',
                 pathMatch: 'full'
+            },
+            {
+              path: 'register',
+              component: RegisterComponent
+            },
+            {
+              path: 'login',
+              component: LoginComponent
             },
             {
                 path: 'dashboard',
@@ -43,12 +54,12 @@ const routes: Routes = [
             {
                 path: 'chat',
                 component: ChatComponent
-            },
+            }/*,
             {
                 path: 'table/:id',
                 component: TableComponent,
                 data: [{isProd: true}]
-            }
+            }*/
         ],
         data: {
             'roles': [RolesConst.USER, RolesConst.ADMIN]

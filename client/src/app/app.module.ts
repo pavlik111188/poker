@@ -31,6 +31,10 @@ import { ProfileComponent } from './components/profile/profile.component';
 import { TableComponent } from './components/table/table.component';
 import { ChatComponent } from './components/chat/chat.component';
 import { PlaygroundComponent } from './components/playground/playground.component';
+import { LayoutComponent } from './components/layout/layout.component';
+
+// Providers
+import { ResizeProvider } from './providers/resize-provider';
 
 @NgModule({
   imports: [
@@ -53,7 +57,8 @@ import { PlaygroundComponent } from './components/playground/playground.componen
     ProfileComponent,
     TableComponent,
     ChatComponent,
-    PlaygroundComponent
+    PlaygroundComponent,
+    LayoutComponent
   ],
 
   providers: [
@@ -64,7 +69,8 @@ import { PlaygroundComponent } from './components/playground/playground.componen
     TableService,
     ChatService,
     CardService,
-    GameService
+    GameService,
+    ResizeProvider
   ],
   bootstrap: [AppComponent]
 })

@@ -22,7 +22,6 @@ export class TableComponent implements OnInit {
   game: string;
   usersInTable: number;
   start_game: boolean = false;
-  data: {};
 
   constructor(
     private route: ActivatedRoute,
@@ -34,9 +33,8 @@ export class TableComponent implements OnInit {
 
   ngOnInit() {
   	this.route.params.subscribe(params => {
-			// console.log(params.id);
-      this.data = { name: params.id };
-			this.getTableInfo(params.id);
+			this.tableId = params.id;
+      this.getTableInfo(params.id);
 		});
     this.getCardList();
   }
@@ -66,8 +64,9 @@ export class TableComponent implements OnInit {
 
   isStartGame(event) {
     console.log(event);
+    this.start_game = true;
     // this.start_game = event;
-
+    this.getTableInfo(this.tableId);
   }
 
 }

@@ -258,8 +258,6 @@ router.get('/dashboard', passport.authenticate('jwt', { session: false}), functi
 
 router.get('/role', passport.authenticate('jwt', { session: false}), function(req, res, next) {
 
-
-
     var token = getToken(req.headers);
 
     if (token) {
@@ -299,6 +297,25 @@ router.get('/games', passport.authenticate('jwt', { session: false}), function(r
                 return res.status(403).send({success: false, msg: 'Games can not receive. '});
             } else {
                 res.json({success: true, game_list: game_list});
+            }
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.get('/get_users_in_chat', passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        Table.find({
+            room: req.query.room
+        }, function(err, users) {
+            if (err) throw err;
+            if (!users) {
+                return res.status(403).send({success: false, msg: 'No users. '});
+            } else {
+                res.json({success: true, users: users});
             }
         });
     } else {

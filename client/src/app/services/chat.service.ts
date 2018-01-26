@@ -14,7 +14,7 @@ export class ChatService {
   private domain = 'http://localhost:8085/';
   private getChatByRoomUrl = 'chat/get_messages';
   private saveMessageUrl = 'chat/';
-  private getUsersInChatUrl = 'chat/get_users_in_chat';
+  private getUsersInChatUrl = 'get_users_in_chat';
   private getTableInfoUrl = 'table_info';
 
   constructor(

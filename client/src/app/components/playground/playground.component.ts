@@ -1,6 +1,7 @@
 import {Component, OnInit, Input, EventEmitter, Output} from '@angular/core';
 import {ResizeProvider} from '../../providers/resize-provider';
 import {ChairService} from '../../services/chair.service';
+import {ChatService} from '../../services/chat.service';
 
 @Component({
   selector: 'app-playground',
@@ -10,10 +11,12 @@ import {ChairService} from '../../services/chair.service';
 export class PlaygroundComponent implements OnInit {
 
   @Input('game') game: string;
+  @Input('room') room: string;
 
   @Output() start_game: EventEmitter<any> = new EventEmitter();
 
   chairs: object[];
+  users: object[];
   styles: string = "board-container";
   rotatePlayer: string = "";
   top: number = 0;
@@ -22,7 +25,9 @@ export class PlaygroundComponent implements OnInit {
   zoomX: number = 1;
   zoomY: number = 1;
 
-  constructor(private chairService: ChairService) { }
+  constructor(
+    private chairService: ChairService,
+    private chatService: ChatService) { }
 
   ngOnInit() {
     ResizeProvider.resizeAction.subscribe((isLandscape: boolean)=>{
@@ -42,6 +47,7 @@ export class PlaygroundComponent implements OnInit {
     (err) => {
       console.log(err);
     });
+    this.getUsersInChat(this.room);
   }
 
   /******************* BOARD UTILS **********************/
@@ -109,6 +115,17 @@ export class PlaygroundComponent implements OnInit {
 
   chooseChair(id) {
     this.start_game.emit(id);
+  }
+
+  getUsersInChat(room: String) {
+    this.chatService.getUsersInChat(room).subscribe((res) => {
+      if((res['success']) && (res['users'].length > 0)) {
+        console.log(res);
+      }
+    },
+    (err) =>{
+      console.log(err);
+    });
   }
 
 }

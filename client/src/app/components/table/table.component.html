@@ -2,5 +2,5 @@
   <app-playground [game]="game" (start_game)="isStartGame($event)"></app-playground>
 </div>
 <div *ngIf="start_game">
-  <app-chat [chat] = "tableId" (users_count) = "countUsers($event)"></app-chat>
+  <app-chat [chat]="data" (users_count)="countUsers($event)"></app-chat>
 </div>

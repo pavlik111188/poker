@@ -20,6 +20,7 @@ import { TableService } from './services/table.service';
 import { ChatService } from './services/chat.service';
 import { CardService } from './services/card.service';
 import { GameService } from './services/game.service';
+import { ChairService } from './services/chair.service';
 
 // Components
 import { NavbarComponent } from './components/navbar/navbar.component';
@@ -70,7 +71,8 @@ import { ResizeProvider } from './providers/resize-provider';
     ChatService,
     CardService,
     GameService,
-    ResizeProvider
+    ResizeProvider,
+    ChairService
   ],
   bootstrap: [AppComponent]
 })

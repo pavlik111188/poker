@@ -1,10 +1,6 @@
 import {Component, OnInit, Input, EventEmitter, Output} from '@angular/core';
-
-import {BehaviorSubject} from 'rxjs/BehaviorSubject';
-
-import { PositionModel } from '../../models/position-model';
-import {ResizeProvider} from "../../providers/resize-provider";
-import {RequestModel} from "../../models/request-model";
+import {ResizeProvider} from '../../providers/resize-provider';
+import {ChairService} from '../../services/chair.service';
 
 @Component({
   selector: 'app-playground',
@@ -17,18 +13,16 @@ export class PlaygroundComponent implements OnInit {
 
   @Output() start_game: EventEmitter<any> = new EventEmitter();
 
-  chairs: any = ['chair1','chair2','chair3','chair4','chair5','chair6'];
-
+  chairs: object[];
   styles: string = "board-container";
   rotatePlayer: string = "";
-
   top: number = 0;
   left: number = 0;
   zoom: number = 1;
   zoomX: number = 1;
   zoomY: number = 1;
 
-  constructor() { }
+  constructor(private chairService: ChairService) { }
 
   ngOnInit() {
     ResizeProvider.resizeAction.subscribe((isLandscape: boolean)=>{
@@ -39,6 +33,15 @@ export class PlaygroundComponent implements OnInit {
     setTimeout(()=>{
       this.resizeActionHandler(null);
     },3000);
+    this.chairService.chairList().subscribe((res) => {
+      if (res['chairs_list']) {
+        this.chairs = res['chairs_list'];
+        console.log(this.chairs);
+      }
+    },
+    (err) => {
+      console.log(err);
+    });
   }
 
   /******************* BOARD UTILS **********************/
@@ -102,6 +105,10 @@ export class PlaygroundComponent implements OnInit {
     } else {
       this.left = (w - 800 * this.zoom) * 0.5 / this.zoom;
     }
+  }
+
+  chooseChair(id) {
+    this.start_game.emit(id);
   }
 
 }

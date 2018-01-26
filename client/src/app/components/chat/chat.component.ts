@@ -41,8 +41,8 @@ export class ChatComponent implements OnInit, AfterViewChecked {
 
     if(this.user !== null) {
 
-      if (this.chat !== 'General') {
-        this.tableService.getTableInfo(this.chat).subscribe((res) => {
+      if (this.chat['name'] !== 'General') {
+        this.tableService.getTableInfo(this.chat['name']).subscribe((res) => {
           if (res) {
             let result = res["table_info"];
             this.roomName = result._id;
@@ -56,7 +56,7 @@ export class ChatComponent implements OnInit, AfterViewChecked {
         });
       } else {
         this.socket = io('http://localhost:4000');
-        this.roomName = this.chat;
+        this.roomName = this.chat['name'];
         this.roomTitle = "Чат";
         this.getChatByRoom(this.roomName, this.roomTitle);
       }

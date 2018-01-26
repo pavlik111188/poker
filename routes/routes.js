@@ -17,6 +17,7 @@ const Game = require('../models/game'); // get the mongoose model
 const Message = require('../models/message'); // get the mongoose model
 const Chat = require('../models/chat'); // get the mongoose model
 const UserInChat = require('../models/user_in_chat'); // get the mongoose model
+const Chair = require('../models/chair'); // get the mongoose model
 
 // test
 router.get('/test', function ( req, res, next) {
@@ -154,6 +155,23 @@ router.get('/table_info', passport.authenticate('jwt', { session: false}), funct
                 return res.status(403).send({success: false, msg: 'Tables can not receive. '});
             } else {
                 res.json({success: true, table_info: table_info});
+            }
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.get('/chairs_list', passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        Chair.find(function(err, chairs_list) {
+            if (err) throw err;
+            if (!chairs_list) {
+                return res.status(403).send({success: false, msg: 'Chairs can not receive. '});
+            } else {
+                res.json({success: true, chairs_list: chairs_list});
             }
         });
     } else {

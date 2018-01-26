@@ -16,10 +16,10 @@
 
 .player-container {
   position: absolute;
-  width: 120px;
-  height: 120px;
-  top: 175px;
-  left: 40px;
+  width: 95px;
+  height: 90px;
+  cursor: pointer;
+  transition: .5s;
 }
 
 .board-container {

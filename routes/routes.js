@@ -308,7 +308,7 @@ router.get('/get_users_in_chat', passport.authenticate('jwt', { session: false})
     var token = getToken(req.headers);
     if (token) {
         var decoded = jwt.decode(token, config.secret);
-        Table.find({
+        UserInChat.find({
             room: req.query.room
         }, function(err, users) {
             if (err) throw err;
@@ -317,6 +317,34 @@ router.get('/get_users_in_chat', passport.authenticate('jwt', { session: false})
             } else {
                 res.json({success: true, users: users});
             }
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.post('/add_user_to_chat',  passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+            UserInChat.findOne({
+                room: req.body.room,
+                email: decoded.user.email
+            }, function (err, user) {
+                if (err) throw err;
+                if (!user) {
+                    var newUserInChat = new UserInChat({
+                        room: req.body.room,
+                        email: decoded.user.email,
+                        chair: req.body.chair
+                    });
+                    newUserInChat.save(function(err) {
+                        if (err) {
+                            return res.json({success: false, msg: 'User did not add.', error: err });
+                        }
+                        res.json({success: true, msg: 'Successful created new table.'});
+                    });
+                }
         });
     } else {
         return res.status(403).send({success: false, msg: 'No token provided.'});

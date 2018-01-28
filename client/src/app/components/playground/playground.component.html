@@ -3,7 +3,9 @@
      [style.-moz-transform]="'scale('+zoom+')'"
      [style.top.px]="top"
      [style.left.px]="left">
-  <div *ngFor="let chair of chairs; let i = index" (click)="chooseChair(chair._id)" class="player-container" [ngStyle]="{'top':chair.top,'left':chair.left}">
-    {{ i }}
+  <div *ngFor="let chair of chairs; let i = index"
+       (click)="chooseChair(chair._id)"
+       [ngStyle]="{'top':chair.top,'left':chair.left}" class="player-container">
+    <div *ngIf="!findInArray(chair._id)">Free</div>
   </div>
 </div>

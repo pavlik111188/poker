@@ -15,7 +15,7 @@ export class ChatService {
   private getChatByRoomUrl = 'chat/get_messages';
   private saveMessageUrl = 'chat/';
   private getUsersInChatUrl = 'get_users_in_chat';
-  private getTableInfoUrl = 'table_info';
+  private addUserToChatUrl = 'add_user_to_chat';
 
   constructor(
       private http: HttpClient,
@@ -26,13 +26,6 @@ export class ChatService {
       const currentUser = JSON.parse(localStorage.getItem('currentUser'));
       this.token = currentUser && currentUser.token;
   }
-
-  /*getChatByRoom(room) {
-      const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
-      const url = `${this.domain}${this.getChatByRoomUrl}`;
-      return this.http.get(url, {headers: headers, params: room})
-          .map((response) => response);
-  }*/
 
   getChatByRoom(data) {
       const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
@@ -53,6 +46,13 @@ export class ChatService {
       const url = `${this.domain}${this.getUsersInChatUrl}`;
       return this.http.get<UsersInChat>(url, {headers: headers, params: {room: room}})
           .map((response) => response as UsersInChat);
+  }
+
+  addUserToChat(data) {
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
+    const url = `${this.domain}${this.addUserToChatUrl}`;
+    return this.http.post(url, data, {headers: headers})
+      .map(response => response);
   }
 
   // tableList() {

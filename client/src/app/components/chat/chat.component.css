@@ -60,9 +60,9 @@
 
 .panel-primary {
   border-color: rgba(0,0,0,0.6);
-  position: absolute;
+  /*position: absolute;
   bottom: 0;
   right: 0;
   width: 370px;
-  height: 323px;
+  height: 323px;*/
 }

@@ -9,3 +9,10 @@
   font-weight: bold;
   width: 100%;
 }
+.chat-block {
+  position: absolute;
+  bottom: 22px;
+  right: 5px;
+  width: 370px;
+  height: 323px;
+}

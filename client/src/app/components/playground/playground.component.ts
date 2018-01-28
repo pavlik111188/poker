@@ -24,6 +24,8 @@ export class PlaygroundComponent implements OnInit {
   zoom: number = 1;
   zoomX: number = 1;
   zoomY: number = 1;
+  myChair: string;
+  user_email: string = localStorage.getItem('user_email');
 
   constructor(
     private chairService: ChairService,
@@ -41,7 +43,6 @@ export class PlaygroundComponent implements OnInit {
     this.chairService.chairList().subscribe((res) => {
       if (res['chairs_list']) {
         this.chairs = res['chairs_list'];
-        console.log(this.chairs);
       }
     },
     (err) => {
@@ -114,18 +115,49 @@ export class PlaygroundComponent implements OnInit {
   }
 
   chooseChair(id) {
-    this.start_game.emit(id);
+    if (this.myChair.length < 1) {
+      this.addUserToChat(id);
+      this.start_game.emit(id);
+    }
   }
 
   getUsersInChat(room: String) {
     this.chatService.getUsersInChat(room).subscribe((res) => {
       if((res['success']) && (res['users'].length > 0)) {
-        console.log(res);
+        this.users = res['users'];
+        // console.log(res);
+        for (var _i = 0; _i < this.users.length; _i++) {
+          var user = this.users[_i];
+          if (this.user_email == user['email']) {
+            this.myChair = user['chair'];
+            this.start_game.emit(this.myChair);
+          }
+        }
       }
     },
     (err) =>{
       console.log(err);
     });
+  }
+
+  addUserToChat(id) {
+    this.chatService.addUserToChat({room: this.room, chair: id}).subscribe((res) => {
+      console.log(res);
+    },
+      (err) => {
+      console.log(err);
+      });
+  }
+
+  findInArray(chair) {
+    let res = false;
+    for (var _i = 0; _i < this.users.length; _i++) {
+      var user = this.users[_i];
+      if (user['chair'] == chair) {
+        res = true;
+      }
+    }
+    return res;
   }
 
 }

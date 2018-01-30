@@ -43,7 +43,7 @@ export class LoginComponent implements OnInit {
         const user = {
             email: this.email,
             password: this.password
-        }
+        };
 
         let vPassword = true;
         let vEmail = true;
@@ -68,8 +68,8 @@ export class LoginComponent implements OnInit {
                             // save token to local storage
                             this.authenticationService.token = data['token'];
                             localStorage.setItem('currentUser', JSON.stringify({ token: data['token'] }));
-                            this.router.navigate(['/']);
-                        }               
+                            this.router.navigate(['/dashboard']);
+                        }
                     },
                     error => {
                         console.log(error);

@@ -3,9 +3,12 @@
      [style.-moz-transform]="'scale('+zoom+')'"
      [style.top.px]="top"
      [style.left.px]="left">
+  <div class="go-to-home"><a [routerLink]="['/dashboard']"><span class="glyphicon glyphicon-arrow-left"></span></a></div>
   <div *ngFor="let chair of chairs; let i = index"
        (click)="chooseChair(chair._id)"
        [ngStyle]="{'top':chair.top,'left':chair.left}" class="player-container">
-    <div *ngIf="!findInArray(chair._id)">Free</div>
+    <div *ngIf="!findInArray(chair._id); else isNotFree">Free</div>
+    <ng-template #isNotFree> {{ getUserByChair(chair._id) }} </ng-template>
   </div>
+  <button *ngIf="userCanStart" class="btn btn-primary start">Start Game</button>
 </div>

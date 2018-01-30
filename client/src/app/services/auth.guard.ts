@@ -26,13 +26,12 @@ export class AuthGuard implements CanActivate {
 
     canActivate(routes, state): Observable<boolean> | Promise<boolean> | boolean {
         const roles = routes.data['roles'];
-        //console.log('Required role: ', roles);
+        // console.log('Required role: ', roles);
 
         return new Observable(observer => {
             this.authenticationService.getUserRole().subscribe(
                 group => {
                     // if role = define
-                    //console.log('This roles: ', group);
                     if (group) {
                         // logged in so return true
                         let hasPermission;

@@ -4,6 +4,7 @@ import { TableService } from '../../services/table.service';
 import * as io from "socket.io-client";
 import {Router} from "@angular/router";
 import {ngContentDef} from "@angular/core/src/view";
+import {FormControl, FormGroup, Validators} from "@angular/forms";
 
 @Component({
   selector: 'app-chat',
@@ -28,6 +29,7 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   messages: any;
   usersInChat: number;
   usersCount: any = [];
+  messageForm: FormGroup;
 
   constructor(
     private chatService: ChatService,
@@ -37,16 +39,22 @@ export class ChatComponent implements OnInit, AfterViewChecked {
 
   ngOnInit() {
     this.roomTitle = this.chat['name'];
-    // if (this.chat['name'] == 'General') {
-      this.socket.emit('room', this.chat);
-    // }
+    this.socket.emit('room', this.chat);
 
     this.socket.on('join', (data) => {
       if (data.status == 'success') {
-        console.log('join ', data);
         this.joinned = true;
+        this.getMessages(this.chat['name']);
       }
     });
+
+    this.socket.on('new-message', (data) => {
+      // if (data.message.room == this.chat['name']) {
+        this.getMessages(this.chat['name']);
+      // }
+    });
+
+    this.createForm();
 
   }
 
@@ -58,6 +66,32 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     try {
       this.myScrollContainer.nativeElement.scrollTop = this.myScrollContainer.nativeElement.scrollHeight;
     } catch(err) { }
+  }
+
+  getMessages(room) {
+    this.chatService.getChatByRoom(room).subscribe((res) => {
+      this.messages = res['messages'];
+      this.scrollToBottom();
+    },
+      (err) => {
+        console.log(err);
+      });
+  }
+
+  private createForm() {
+    this.messageForm = new FormGroup({
+      message: new FormControl('', [Validators.required])
+    });
+  }
+
+  sendMessage() {
+    this.chatService.saveMessage({message: this.messageForm.value.message, room: this.chat['name']}).subscribe((res) => {
+      if (res['success']) {
+        this.socket.emit('save-message', {message: this.messageForm.value.message, room: this.chat['name']});
+        this.getMessages(this.chat['name']);
+        this.messageForm.reset();
+      }
+    });
   }
 
 }

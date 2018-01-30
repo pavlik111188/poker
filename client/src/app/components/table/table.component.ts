@@ -8,6 +8,7 @@ import { ChatService } from '../../services/chat.service';
 import { GameService } from '../../services/game.service';
 import 'rxjs/add/operator/map';
 import { FlashMessagesService } from 'angular2-flash-messages';
+import {AuthenticationService} from "../../services/authentication.service";
 
 @Component({
   selector: 'app-table',
@@ -23,13 +24,32 @@ export class TableComponent implements OnInit {
   usersInTable: number;
   start_game: boolean = false;
 
+  isLogged: boolean = false;
+  currentUser: string = '';
+
   constructor(
     private route: ActivatedRoute,
     private tableService: TableService,
     private cardService: CardService,
     private flashMessagesService: FlashMessagesService,
-    private gameService: GameService
-  ) { }
+    private gameService: GameService,
+    private authenticationService: AuthenticationService
+  ) {
+    if(JSON.parse(localStorage.getItem('currentUser'))) {
+      this.isLogged = true;
+      if(localStorage.getItem('user_name')) {
+        this.currentUser = localStorage.getItem('user_name');
+      } else {
+        this.authenticationService.getUserInfo().subscribe(res => {
+          this.currentUser = res;
+        });
+      }
+
+    } else {
+      this.logout();
+      this.isLogged = false;
+    }
+  }
 
   ngOnInit() {
   	this.route.params.subscribe(params => {
@@ -45,7 +65,6 @@ export class TableComponent implements OnInit {
   		  let tableInfo = res['table_info'];
   		  this.game = tableInfo.game;
       }
-  	  console.log(res);
   	});
   }
 
@@ -63,10 +82,13 @@ export class TableComponent implements OnInit {
   }
 
   isStartGame(event) {
-    console.log(event);
     this.start_game = true;
     // this.start_game = event;
     this.getTableInfo(this.tableId);
+  }
+
+  logout() {
+    this.authenticationService.logout();
   }
 
 }

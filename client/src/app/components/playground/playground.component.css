@@ -34,6 +34,17 @@
   transform: rotate(-90deg);
 }
 
+.go-to-home {
+  padding: 20px;
+  width: 20px;
+}
+
+.start {
+  position: absolute;
+  top: 25px;
+  right: 20px;
+}
+
 @media (min-width: 768px) {
   .play-main {
     background: url("/assets/img/bg.jpg") no-repeat top / contain;

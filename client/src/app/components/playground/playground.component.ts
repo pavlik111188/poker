@@ -2,6 +2,8 @@ import {Component, OnInit, Input, EventEmitter, Output} from '@angular/core';
 import {ResizeProvider} from '../../providers/resize-provider';
 import {ChairService} from '../../services/chair.service';
 import {ChatService} from '../../services/chat.service';
+import {TableService} from '../../services/table.service';
+import * as io from "socket.io-client";
 
 @Component({
   selector: 'app-playground',
@@ -24,11 +26,16 @@ export class PlaygroundComponent implements OnInit {
   zoom: number = 1;
   zoomX: number = 1;
   zoomY: number = 1;
-  myChair: string;
+  myChair: string = '';
   user_email: string = localStorage.getItem('user_email');
+  socket = io('http://localhost:4000');
+  tableOwner: string;
+  userCanStart: boolean = false;
+  startedGame: boolean = false;
 
   constructor(
     private chairService: ChairService,
+    private tableService: TableService,
     private chatService: ChatService) { }
 
   ngOnInit() {
@@ -49,6 +56,18 @@ export class PlaygroundComponent implements OnInit {
       console.log(err);
     });
     this.getUsersInChat(this.room);
+
+    this.socket.on('new-user-in-chat', (data) => {
+      if (data.name == this.room)
+        this.getUsersInChat(data.name);
+    });
+
+    this.tableService.getTableInfo(this.room).subscribe((res) => {
+      console.log(res);
+      this.tableOwner = res['table_info']['ownerEmail'];
+      this.canStart();
+    })
+
   }
 
   /******************* BOARD UTILS **********************/
@@ -125,7 +144,7 @@ export class PlaygroundComponent implements OnInit {
     this.chatService.getUsersInChat(room).subscribe((res) => {
       if((res['success']) && (res['users'].length > 0)) {
         this.users = res['users'];
-        // console.log(res);
+        this.canStart();
         for (var _i = 0; _i < this.users.length; _i++) {
           var user = this.users[_i];
           if (this.user_email == user['email']) {
@@ -142,7 +161,9 @@ export class PlaygroundComponent implements OnInit {
 
   addUserToChat(id) {
     this.chatService.addUserToChat({room: this.room, chair: id}).subscribe((res) => {
-      console.log(res);
+      if (res['success']) {
+        this.getUsersInChat(this.room);
+      }
     },
       (err) => {
       console.log(err);
@@ -151,13 +172,33 @@ export class PlaygroundComponent implements OnInit {
 
   findInArray(chair) {
     let res = false;
-    for (var _i = 0; _i < this.users.length; _i++) {
-      var user = this.users[_i];
-      if (user['chair'] == chair) {
-        res = true;
+    if (this.users) {
+      for (var _i = 0; _i < this.users.length; _i++) {
+        var user = this.users[_i];
+        if (user['chair'] == chair) {
+          res = true;
+        }
       }
     }
     return res;
+  }
+
+  getUserByChair(chair) {
+    let res;
+    for (var _i = 0; _i < this.users.length; _i++) {
+      var user = this.users[_i];
+      if (user['chair'] == chair) {
+        res = user['email'];
+      }
+    }
+    return res;
+  }
+
+  canStart() {
+    if (this.users) {
+      if (this.users.length > 1 && this.tableOwner == this.user_email && !this.startedGame)
+        this.userCanStart = true;
+    }
   }
 
 }

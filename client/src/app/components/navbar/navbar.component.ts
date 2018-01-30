@@ -35,11 +35,10 @@ export class NavbarComponent implements OnInit {
       }
       //console.log('val ', JSON.parse(localStorage.getItem('currentUser')));
     });
-    this.currentUser = 'Paolo';
+    // this.currentUser = 'Paolo';
   }
 
   ngOnInit() {
-
   }
 
   logout() {

@@ -23,7 +23,19 @@ const routes: Routes = [
     {
       path: 'table/:id',
       component: TableComponent,
-      data: [{isProd: true}]
+      data: {
+        'roles': [RolesConst.USER, RolesConst.ADMIN]
+      },
+      canActivate: [AuthGuard]
+    },
+
+    {
+      path: 'register',
+      component: RegisterComponent
+    },
+    {
+      path: 'login',
+      component: LoginComponent
     },
 
     {
@@ -34,14 +46,6 @@ const routes: Routes = [
                 path: '',
                 redirectTo: '/dashboard',
                 pathMatch: 'full'
-            },
-            {
-              path: 'register',
-              component: RegisterComponent
-            },
-            {
-              path: 'login',
-              component: LoginComponent
             },
             {
                 path: 'dashboard',
@@ -65,7 +69,7 @@ const routes: Routes = [
             'roles': [RolesConst.USER, RolesConst.ADMIN]
         },
         canActivate: [AuthGuard],
-    },
+    }
 ];
 
 @NgModule({

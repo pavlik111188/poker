@@ -1,6 +1,6 @@
 <div class="panel panel-primary" *ngIf="joinned">
   <div class="panel-heading">
-      <span class="glyphicon glyphicon-comment"></span> {{ roomTitle }}
+      <span class="glyphicon glyphicon-comment"></span> Чат
       <!-- <div class="btn-group pull-right">
           <button type="button" class="btn btn-default btn-xs" (click)="logout()">
               Logout
@@ -10,13 +10,13 @@
   <div #scrollMe class="panel-body">
       <ul class="chat">
           <li *ngFor="let message of messages">
-            <div class="left clearfix" *ngIf="message.user===msgData.user; else rightchat">
+            <div class="left clearfix" *ngIf="message.nickname===email; else rightchat">
               <span class="chat-img pull-left">
                 <img src="http://placehold.it/50/55C1E7/fff&text=ME" alt="User Avatar" class="img-circle" />
               </span>
               <div class="chat-body clearfix">
                   <div class="header">
-                      <strong class="primary-font">{{ message.user }}</strong> <small class="pull-right text-muted">
+                      <strong class="primary-font">{{ message.nickname }}</strong> <small class="pull-right text-muted">
                           <span class="glyphicon glyphicon-time"></span>{{ message.updated_at | date: 'medium' }}</small>
                   </div>
                   <p>{{ message.message }}</p>
@@ -30,7 +30,7 @@
                 <div class="chat-body clearfix">
                     <div class="header">
                         <small class=" text-muted"><span class="glyphicon glyphicon-time"></span>{{ message.updated_at | date: 'medium' }}</small>
-                        <strong class="pull-right primary-font">{{ message.user }}</strong>
+                        <strong class="pull-right primary-font">{{ message.nickname }}</strong>
                     </div>
                     <p>{{ message.message }}</p>
                 </div>
@@ -40,13 +40,11 @@
       </ul>
   </div>
   <div class="panel-footer">
-    <form (ngSubmit)="sendMessage()" #msgForm="ngForm">
+    <form (ngSubmit)="sendMessage()" [formGroup]="messageForm">
       <div class="input-group">
-          <input type="hidden" [(ngModel)]="msgData.room" name="room" />
-          <input type="hidden" [(ngModel)]="msgData.user" name="user" />
-          <input id="btn-input" type="text" [(ngModel)]="msgData.message" name="message" class="form-control input-sm" placeholder="Type your message here..." required="" />
+          <input id="btn-input" type="text" formControlName="message" name="message" class="form-control input-sm" placeholder="Type your message here..." required="" />
           <span class="input-group-btn">
-              <button class="btn btn-warning btn-sm" id="btn-chat" [disabled]="!msgForm.form.valid">
+              <button class="btn btn-warning btn-sm" id="btn-chat" [disabled]="messageForm.invalid">
                   Send</button>
           </span>
       </div>

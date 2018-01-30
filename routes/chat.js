@@ -20,8 +20,8 @@ io.on('connection', function (socket) {
   socket.on('room', function(room) {
       if (room.name) {
           socket.join(room.name);
-          console.log('room: ', room);
           io.emit('join', {status: 'success'});
+          socket.broadcast.emit('new-user-in-chat', room);
       }
   });
   socket.on('disconnect', function(data) {
@@ -29,7 +29,7 @@ io.on('connection', function (socket) {
   });
   socket.on('save-message', function (data) {
       console.log('save-message ', data);
-    io.emit('new-message', { message: data });
+      io.in(data.room).emit('new-message', { message: data });
   });
 
 });

@@ -323,6 +323,25 @@ router.get('/get_users_in_chat', passport.authenticate('jwt', { session: false})
     }
 });
 
+router.get('/get_messages', passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        Message.find({
+            room: req.query.room
+        }, function(err, messages) {
+            if (err) throw err;
+            if (!messages) {
+                return res.status(403).send({success: false, msg: 'No messages.'});
+            } else {
+                res.json({success: true, messages: messages});
+            }
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
 router.post('/add_user_to_chat',  passport.authenticate('jwt', { session: false}), function(req, res, next) {
     var token = getToken(req.headers);
     if (token) {
@@ -345,6 +364,26 @@ router.post('/add_user_to_chat',  passport.authenticate('jwt', { session: false}
                         res.json({success: true, msg: 'Successful created new table.'});
                     });
                 }
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.post('/chat/save_message',  passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        var newMessage = new Message({
+            message: req.body.message,
+            room: req.body.room,
+            nickname: decoded.user.email
+        });
+        newMessage.save(function(err) {
+            if (err) {
+                return res.json({success: false, msg: 'Message did not add.', error: err });
+            }
+            res.json({success: true, msg: 'Successful added new message.'});
         });
     } else {
         return res.status(403).send({success: false, msg: 'No token provided.'});

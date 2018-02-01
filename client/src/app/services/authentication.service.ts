@@ -21,6 +21,7 @@ export class AuthenticationService {
     // URLs to web api
     private roleUrl = 'role';
     private userInfoUrl = 'user_info';
+    private getUserNameUrl = 'get_user_name';
 
     // ENV file
     public env: string;
@@ -103,6 +104,21 @@ export class AuthenticationService {
             localStorage.setItem('user_name', res.user.name);
             localStorage.setItem('user_email', res.user.email);
             observer.next(res.user.name);
+          },
+          (error) => {
+            observer.next(error);
+          }
+        )
+      });
+    }
+
+    getUserName(email): Observable<any> {
+      const headers = new HttpHeaders({ 'Authorization': this.token });
+      const url = `${this.domain}${this.getUserNameUrl}`;
+      return new Observable(observer => {
+        this.http.get<any>(url, { headers: headers, params: {email: email}}).subscribe(
+          (res) => {
+            observer.next(res.user);
           },
           (error) => {
             observer.next(error);

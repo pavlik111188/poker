@@ -3,4 +3,5 @@ export class UserCards {
   game: string;
   table: string;
   trump: string;
+  cards: any;
 }

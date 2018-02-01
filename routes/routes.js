@@ -303,6 +303,28 @@ router.get('/user_info', passport.authenticate('jwt', { session: false}), functi
     }
 });
 
+router.get('/get_user_name', passport.authenticate('jwt', { session: false}), function(req, res, next) {
+
+    var token = getToken(req.headers);
+
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        User.findOne({
+            email: req.query.email
+        }, function(err, user) {
+            if (err) throw err;
+
+            if (!user) {
+                return res.status(403).send({success: false, msg: 'Authentication failed. '});
+            } else {
+                res.json({success: true, user: user.name});
+            }
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
 router.get('/games', passport.authenticate('jwt', { session: false}), function(req, res, next) {
     var token = getToken(req.headers);
     if (token) {
@@ -370,7 +392,9 @@ router.post('/add_user_to_chat',  passport.authenticate('jwt', { session: false}
                     var newUserInChat = new UserInChat({
                         room: req.body.room,
                         email: decoded.user.email,
-                        chair: req.body.chair
+                        chair: req.body.chair,
+                        position: req.body.position,
+                        name: req.body.name
                     });
                     newUserInChat.save(function(err) {
                         if (err) {

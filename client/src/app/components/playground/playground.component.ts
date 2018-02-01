@@ -8,6 +8,7 @@ import {TableService} from '../../services/table.service';
 import {GameService} from '../../services/game.service';
 import * as io from "socket.io-client";
 import { FlashMessagesService } from 'angular2-flash-messages';
+import {AuthenticationService} from "../../services/authentication.service";
 
 @Component({
   selector: 'app-playground',
@@ -32,6 +33,7 @@ export class PlaygroundComponent implements OnInit {
   zoomY: number = 1;
   myChair: string = '';
   user_email: string = localStorage.getItem('user_email');
+  user_name: string = localStorage.getItem('user_name');
   socket = io('http://localhost:4000');
   tableOwner: string;
   userCanStart: boolean = false;
@@ -46,6 +48,7 @@ export class PlaygroundComponent implements OnInit {
     private cardService: CardService,
     private gameService: GameService,
     private flashMessagesService: FlashMessagesService,
+    private authenticationService: AuthenticationService,
     private chatService: ChatService) {
 
   }
@@ -71,16 +74,19 @@ export class PlaygroundComponent implements OnInit {
 
     this.socket.on('new-user-in-chat', (data) => {
       if (data.name == this.room) {
-        this.getUsersInChat(data.name);
-        this.canStart();
+        setTimeout(() => {
+          this.getUsersInChat(data.name);
+          this.canStart();
+        }, 1500);
+
       }
     });
 
     this.socket.on('start-new-game', (data) => {
       if (data.room == this.room) {
         setTimeout(() => {
-          console.log('start-new-game', data);
           this.getCardList();
+          this.getStartedGame();
         }, 1500);
       }
     });
@@ -155,9 +161,9 @@ export class PlaygroundComponent implements OnInit {
     }
   }
 
-  chooseChair(id) {
+  chooseChair(id, position) {
     if (this.myChair.length < 1) {
-      this.addUserToChat(id);
+      this.addUserToChat(id, position);
       this.start_game.emit(id);
     }
   }
@@ -180,8 +186,8 @@ export class PlaygroundComponent implements OnInit {
     });
   }
 
-  addUserToChat(id) {
-    this.chatService.addUserToChat({room: this.room, chair: id}).subscribe((res) => {
+  addUserToChat(id, position) {
+    this.chatService.addUserToChat({room: this.room, chair: id, position: position, name: this.user_name}).subscribe((res) => {
       if (res['success']) {
         this.getUsersInChat(this.room);
       }
@@ -205,6 +211,7 @@ export class PlaygroundComponent implements OnInit {
   }
 
   getUserByChair(chair) {
+    console.log(this.users);
     let res;
     for (var _i = 0; _i < this.users.length; _i++) {
       var user = this.users[_i];
@@ -217,7 +224,12 @@ export class PlaygroundComponent implements OnInit {
 
   canStart() {
     if (this.users && this.tableOwner && this.room) {
-      this.gameService.getStartedGame({table: this.room}).subscribe((res) => {
+      this.getStartedGame();
+    }
+  }
+
+  getStartedGame() {
+    this.gameService.getStartedGame({table: this.room}).subscribe((res) => {
         if (res) {
           if (res['success']) {
             this.startedGame = true;
@@ -228,12 +240,11 @@ export class PlaygroundComponent implements OnInit {
             this.userCanStart = true;
         }
       },
-        (err) => {
-          console.log(err);
-          if (this.users.length > 1 && this.tableOwner == this.user_email && !this.startedGame)
-            this.userCanStart = true;
-        });
-    }
+      (err) => {
+        console.log(err);
+        if (this.users.length > 1 && this.tableOwner == this.user_email && !this.startedGame)
+          this.userCanStart = true;
+      });
   }
 
   getCardList() {
@@ -275,6 +286,16 @@ export class PlaygroundComponent implements OnInit {
           console.log(err);
         });
     }
+
+    this.addStartedGame();
+
+  }
+
+  newGame() {
+    this.getCardList();
+  }
+
+  addStartedGame() {
     let key = Math.floor(Math.random() * this.cards.length);
     this.gameService.addStartedGame({game: this.game, table: this.room, trump: this.cards[key].suit}).subscribe((res) => {
       if (res['success']) {
@@ -287,10 +308,6 @@ export class PlaygroundComponent implements OnInit {
     });
   }
 
-  newGame() {
-    this.getCardList();
-  }
-
   getUserCards() {
     this.cardService.getUserCards({
       game: this.game,
@@ -300,6 +317,12 @@ export class PlaygroundComponent implements OnInit {
       console.log(res);
       if (res['success'])
         this.myCards = res['cards'];
+    });
+  }
+
+  getUserName(email: string) {
+    this.authenticationService.getUserName(email).subscribe((res) => {
+      return res.toString();
     });
   }
 

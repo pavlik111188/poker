@@ -46,15 +46,27 @@
 }
 
 .cards-area {
-  position: absolute;
-  width: 275px;
-  height: 80px;
-  bottom: 195px;
-  left: 260px;
+
+}
+
+.cards-area > span {
+  margin-left: -30px;
+}
+
+.cards-area > span:first-child {
+  margin-left: 0;
 }
 
 .cards-area > span > img {
-  height: 80px;
+  height: 50px;
+}
+
+.suit {
+  height: 70px;
+  margin: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
 }
 
 @media (min-width: 768px) {

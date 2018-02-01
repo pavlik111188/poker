@@ -24,14 +24,19 @@ io.on('connection', function (socket) {
           socket.broadcast.emit('new-user-in-chat', room);
       }
   });
+
   socket.on('disconnect', function(data) {
     console.log('User disconnected ', data);
   });
+
   socket.on('save-message', function (data) {
       console.log('save-message ', data);
       io.in(data.room).emit('new-message', { message: data });
   });
 
+  socket.on('start-new-game', function (data) {
+      socket.broadcast.emit('start-new-game', data);
+  });
 });
 
 module.exports = router;

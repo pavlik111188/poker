@@ -30,7 +30,6 @@ export class TableComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private tableService: TableService,
-    private cardService: CardService,
     private flashMessagesService: FlashMessagesService,
     private gameService: GameService,
     private authenticationService: AuthenticationService
@@ -56,7 +55,6 @@ export class TableComponent implements OnInit {
 			this.tableId = params.id;
       this.getTableInfo(params.id);
 		});
-    this.getCardList();
   }
 
   getTableInfo(id: string) {
@@ -66,15 +64,6 @@ export class TableComponent implements OnInit {
   		  this.game = tableInfo.game;
       }
   	});
-  }
-
-  getCardList() {
-    this.cardService.cardList().subscribe((res) => {
-      // console.log(res);
-    },
-    (err) => {
-      console.log(err);
-    });
   }
 
   countUsers(event) {

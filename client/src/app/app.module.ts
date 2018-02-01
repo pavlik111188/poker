@@ -6,6 +6,7 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
 
 // Non angular modules
 import { FlashMessagesModule } from 'angular2-flash-messages';
+import { SharedModule } from './shared/shared.module';
 
 // App Component
 import { AppComponent } from './app.component';
@@ -45,7 +46,8 @@ import { ResizeProvider } from './providers/resize-provider';
     ReactiveFormsModule,
     HttpClientModule,
     AppRoutingModule,
-    FlashMessagesModule
+    FlashMessagesModule,
+    SharedModule
   ],
 
   declarations: [

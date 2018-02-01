@@ -18,6 +18,8 @@ const Message = require('../models/message'); // get the mongoose model
 const Chat = require('../models/chat'); // get the mongoose model
 const UserInChat = require('../models/user_in_chat'); // get the mongoose model
 const Chair = require('../models/chair'); // get the mongoose model
+const StartedGame = require('../models/started_game'); // get the mongoose model
+const UserCards = require('../models/user_cards'); // get the mongoose model
 
 // test
 router.get('/test', function ( req, res, next) {
@@ -183,14 +185,27 @@ router.get('/card_list', passport.authenticate('jwt', { session: false}), functi
     var token = getToken(req.headers);
     if (token) {
         var decoded = jwt.decode(token, config.secret);
-        Card.find(function(err, card_list) {
-            if (err) throw err;
-            if (!card_list) {
-                return res.status(403).send({success: false, msg: 'Cards can not receive. '});
-            } else {
-                res.json({success: true, card_list: card_list});
-            }
-        });
+        if (req.query.type == 1) {
+            Card.find({
+                rank : {$gt : 4, $lt : 14}
+            }, function(err, card_list) {
+                if (err) throw err;
+                if (!card_list) {
+                    return res.status(403).send({success: false, msg: 'Cards can not receive. '});
+                } else {
+                    res.json({success: true, card_list: card_list});
+                }
+            });
+        } else {
+            Card.find(function(err, card_list) {
+                if (err) throw err;
+                if (!card_list) {
+                    return res.status(403).send({success: false, msg: 'Cards can not receive. '});
+                } else {
+                    res.json({success: true, card_list: card_list});
+                }
+            });
+        }
     } else {
         return res.status(403).send({success: false, msg: 'No token provided.'});
     }
@@ -384,6 +399,93 @@ router.post('/chat/save_message',  passport.authenticate('jwt', { session: false
                 return res.json({success: false, msg: 'Message did not add.', error: err });
             }
             res.json({success: true, msg: 'Successful added new message.'});
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.post('/add_started_game',  passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        StartedGame.findOne({
+            game: req.body.game,
+            table: req.body.table
+        }, function (err, game) {
+            if (err) throw err;
+            if (!game) {
+                var newStartedGame = new StartedGame({
+                    game: req.body.game,
+                    table: req.body.table,
+                    trump: req.body.trump
+                });
+                newStartedGame.save(function(err) {
+                    if (err) {
+                        return res.json({success: false, msg: 'Game did not add.', error: err });
+                    }
+                    res.json({success: true, msg: 'Successful created new Started Game.'});
+                });
+            }
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.get('/get_started_game', passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        StartedGame.findOne({
+            table: req.query.table
+        }, function(err, game) {
+            if (err) throw err;
+            if (!game) {
+                return res.status(403).send({success: false, msg: 'Started Game can not receive. '});
+            } else {
+                res.json({success: true, game: game});
+            }
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.get('/get_user_cards', passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        UserCards.findOne({
+            game: req.query.game,
+            table: req.query.table,
+            user: req.query.user
+        }, function(err, cards) {
+            if (err) throw err;
+            if (!cards) {
+                return res.status(403).send({success: false, msg: 'User Cards can not receive. '});
+            } else {
+                res.json({success: true, cards: cards.cards});
+            }
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.post('/add_user_cards',  passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        UserCards.update({
+            game: req.body.game,
+            table: req.body.table,
+            user: req.body.user
+        }, req.body, {upsert: true}, function (err) {
+            if (err) {
+                return res.json({success: false, msg: 'Cards of user did not add.', error: err });
+            }
+            res.json({success: true, msg: 'Successful added Cards of user.'});
         });
     } else {
         return res.status(403).send({success: false, msg: 'No token provided.'});

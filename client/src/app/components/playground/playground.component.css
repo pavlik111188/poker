@@ -45,6 +45,18 @@
   right: 20px;
 }
 
+.cards-area {
+  position: absolute;
+  width: 275px;
+  height: 80px;
+  bottom: 195px;
+  left: 260px;
+}
+
+.cards-area > span > img {
+  height: 80px;
+}
+
 @media (min-width: 768px) {
   .play-main {
     background: url("/assets/img/bg.jpg") no-repeat top / contain;

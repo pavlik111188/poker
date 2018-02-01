@@ -10,5 +10,13 @@
     <div *ngIf="!findInArray(chair._id); else isNotFree">Free</div>
     <ng-template #isNotFree> {{ getUserByChair(chair._id) }} </ng-template>
   </div>
-  <button *ngIf="userCanStart" class="btn btn-primary start">Start Game</button>
+  <button *ngIf="userCanStart; else startedBlock" class="btn btn-primary start" (click)="newGame()">Start Game</button>
+  <ng-template #startedBlock>
+    {{ trump }}
+    <div *ngIf="myCards" class="cards-area">
+      <span *ngFor="let card of myCards">
+        <img src="assets/img/cards/{{ card | uppercase }}.svg" />
+      </span>
+    </div>
+  </ng-template>
 </div>

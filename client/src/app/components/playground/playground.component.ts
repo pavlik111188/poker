@@ -1,9 +1,13 @@
 import {Component, OnInit, Input, EventEmitter, Output} from '@angular/core';
+import { UpperCasePipe } from '@angular/common';
 import {ResizeProvider} from '../../providers/resize-provider';
 import {ChairService} from '../../services/chair.service';
 import {ChatService} from '../../services/chat.service';
+import {CardService} from '../../services/card.service';
 import {TableService} from '../../services/table.service';
+import {GameService} from '../../services/game.service';
 import * as io from "socket.io-client";
+import { FlashMessagesService } from 'angular2-flash-messages';
 
 @Component({
   selector: 'app-playground',
@@ -32,11 +36,19 @@ export class PlaygroundComponent implements OnInit {
   tableOwner: string;
   userCanStart: boolean = false;
   startedGame: boolean = false;
+  cards: any;
+  trump: string;
+  myCards: any;
 
   constructor(
     private chairService: ChairService,
     private tableService: TableService,
-    private chatService: ChatService) { }
+    private cardService: CardService,
+    private gameService: GameService,
+    private flashMessagesService: FlashMessagesService,
+    private chatService: ChatService) {
+
+  }
 
   ngOnInit() {
     ResizeProvider.resizeAction.subscribe((isLandscape: boolean)=>{
@@ -58,15 +70,25 @@ export class PlaygroundComponent implements OnInit {
     this.getUsersInChat(this.room);
 
     this.socket.on('new-user-in-chat', (data) => {
-      if (data.name == this.room)
+      if (data.name == this.room) {
         this.getUsersInChat(data.name);
+        this.canStart();
+      }
+    });
+
+    this.socket.on('start-new-game', (data) => {
+      if (data.room == this.room) {
+        setTimeout(() => {
+          console.log('start-new-game', data);
+          this.getCardList();
+        }, 1500);
+      }
     });
 
     this.tableService.getTableInfo(this.room).subscribe((res) => {
-      console.log(res);
       this.tableOwner = res['table_info']['ownerEmail'];
       this.canStart();
-    })
+    });
 
   }
 
@@ -144,7 +166,6 @@ export class PlaygroundComponent implements OnInit {
     this.chatService.getUsersInChat(room).subscribe((res) => {
       if((res['success']) && (res['users'].length > 0)) {
         this.users = res['users'];
-        this.canStart();
         for (var _i = 0; _i < this.users.length; _i++) {
           var user = this.users[_i];
           if (this.user_email == user['email']) {
@@ -195,10 +216,91 @@ export class PlaygroundComponent implements OnInit {
   }
 
   canStart() {
-    if (this.users) {
-      if (this.users.length > 1 && this.tableOwner == this.user_email && !this.startedGame)
-        this.userCanStart = true;
+    if (this.users && this.tableOwner && this.room) {
+      this.gameService.getStartedGame({table: this.room}).subscribe((res) => {
+        if (res) {
+          if (res['success']) {
+            this.startedGame = true;
+            this.trump = res['game']['trump'];
+            this.getCardList();
+          }
+          if (this.users.length > 1 && this.tableOwner == this.user_email && !this.startedGame)
+            this.userCanStart = true;
+        }
+      },
+        (err) => {
+          console.log(err);
+          if (this.users.length > 1 && this.tableOwner == this.user_email && !this.startedGame)
+            this.userCanStart = true;
+        });
     }
+  }
+
+  getCardList() {
+    const type = this.game == 'Дурак' ? 1 : 0;
+    if (!this.startedGame) {
+      this.cardService.cardList(type).subscribe((res) => {
+          if (res['success']) {
+            this.distributionCards(res['card_list']);
+          }
+        },
+        (err) => {
+          console.log(err);
+        });
+    } else {
+      this.getUserCards();
+    }
+  }
+
+  distributionCards(card_list) {
+    this.cards = card_list;
+    for (let j = 0; j < this.users.length; j++ ) {
+      let userCards = [];
+      for (let i = 0; i < 6; i++) {
+        let rand = Math.floor(Math.random() * this.cards.length);
+        userCards.push(this.cards[rand].name);
+        this.cards.splice(rand, 1);
+      }
+      this.cardService.addUserCards({
+        game: this.game,
+        table: this.room,
+        user: this.users[j]['email'],
+        cards: userCards
+      }).subscribe((res) => {
+          this.startedGame = true;
+          this.userCanStart = false;
+          this.getUserCards();
+        },
+        (err) => {
+          console.log(err);
+        });
+    }
+    let key = Math.floor(Math.random() * this.cards.length);
+    this.gameService.addStartedGame({game: this.game, table: this.room, trump: this.cards[key].suit}).subscribe((res) => {
+      if (res['success']) {
+        this.startedGame = true;
+        this.socket.emit('start-new-game', {room: this.room});
+        this.trump = this.cards[key].suit;
+        this.getCardList();
+        this.getUserCards();
+      }
+    });
+  }
+
+  newGame() {
+    this.getCardList();
+  }
+
+  getUserCards() {
+    this.cardService.getUserCards({
+      game: this.game,
+      table: this.room,
+      user: this.user_email
+    }).subscribe((res) => {
+      console.log(res);
+      if (res['success'])
+        this.myCards = res['cards'];
+    });
   }
 
 }

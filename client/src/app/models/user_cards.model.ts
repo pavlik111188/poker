@@ -4,4 +4,5 @@ export class UserCards {
   table: string;
   trump: string;
   cards: any;
+  cards_count: number;
 }

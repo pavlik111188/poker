@@ -54,4 +54,4 @@ app.use('/chat', chat);
 //Start the server
 app.listen(port, function () {
     console.log('App listening on port: ', port)
-})
+});

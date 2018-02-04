@@ -16,6 +16,7 @@ export class CardService {
     private getCardListUrl = 'card_list';
     private addUserCardsUrl = 'add_user_cards';
     private getUserCardsUrl = 'get_user_cards';
+    private getUserCardsCountUrl = 'get_user_cards_count';
 
     constructor(
         private http: HttpClient,
@@ -47,5 +48,12 @@ export class CardService {
       return this.http.post(url, data, {headers: headers})
         .map(response => response);
     }
+
+  getUserCardsCount(data) {
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
+    const url = `${this.domain}${this.getUserCardsCountUrl}`;
+    return this.http.get<UserCards>(url, {headers: headers, params: data})
+      .map((response) => response);
+  }
 
 }

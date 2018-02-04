@@ -2,6 +2,7 @@ import {Component, OnChanges, SimpleChanges, Input, OnInit} from '@angular/core'
 import { TableService } from '../../services/table.service';
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from "@angular/router";
+import * as io from "socket.io-client";
 import { patternValidator } from '../../shared/pattern-validator';
 import { GameService } from '../../services/game.service';
 import {FlashMessagesService} from "angular2-flash-messages";
@@ -23,6 +24,7 @@ export class DashboardComponent implements OnInit {
   chat: string = 'General';
   currentUserEmail: string = '';
   games: any = [];
+  socket = io('http://localhost:4000');
 
   constructor(
     private tableService: TableService,
@@ -40,6 +42,13 @@ export class DashboardComponent implements OnInit {
     this.currentUserEmail = localStorage.getItem('user_email');
     // console.log(this.currentUserEmail);
     this.getGameList();
+    this.socket.on('create-new-table', (data) => {
+      console.log('create-new-table');
+      // setTimeout(() => {
+        this.getTableList();
+        this.flashMessagesService.show(data.msg, {cssClass: data.type, timeout: 3000});
+      // }, 1500);
+    });
   }
 
   newTable() {
@@ -50,6 +59,7 @@ export class DashboardComponent implements OnInit {
         this.createForm();
         this.loading = false;
         this.flashMessagesService.show('Стол успешно добавлен', {cssClass: 'alert-success', timeout: 3000});
+        this.socket.emit('create-new-table', {msg: 'Добавден новый стол!!!', type: 'alert-success'});
       }
   	},
   	(error) => {
@@ -86,6 +96,7 @@ export class DashboardComponent implements OnInit {
       if (res['success']) {
         console.log(res['msg']);
         this.getTableList();
+        this.socket.emit('create-new-table', {msg: 'Удален стол (:', type: 'alert-danger'});
       } else {
         console.log(res['msg']);
       }

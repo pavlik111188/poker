@@ -16,27 +16,31 @@ server.listen(4000);
 
 // socket io
 io.on('connection', function (socket) {
-  console.log('User connected');
-  socket.on('room', function(room) {
+    socket.on('room', function(room) {
       if (room.name) {
           socket.join(room.name);
           io.emit('join', {status: 'success'});
           socket.broadcast.emit('new-user-in-chat', room);
       }
-  });
+    });
 
-  socket.on('disconnect', function(data) {
-    console.log('User disconnected ', data);
-  });
+    socket.on('disconnect', function(data) {
+      console.log('User disconnected ', data);
+    });
 
-  socket.on('save-message', function (data) {
+    socket.on('save-message', function (data) {
       console.log('save-message ', data);
       io.in(data.room).emit('new-message', { message: data });
-  });
+    });
 
-  socket.on('start-new-game', function (data) {
+    socket.on('start-new-game', function (data) {
       socket.broadcast.emit('start-new-game', data);
-  });
+    });
+
+    socket.on('create-new-table', function (data) {
+        console.log('create-new-table: ', data);
+      socket.broadcast.emit('create-new-table', data);
+    });
 });
 
 module.exports = router;

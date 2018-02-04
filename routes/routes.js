@@ -114,7 +114,17 @@ router.post('/remove_table',  passport.authenticate('jwt', { session: false}), f
                             room: req.body.id
                         }, function(err) {
                             if (err) throw err;
+                            StartedGame.remove({
+                                table: req.body.id
+                            }, function(err) {
+                                if (err) throw err;
+                                UserCards.remove({
+                                    table: req.body.id
+                                }, function(err) {
+                                    if (err) throw err;
 
+                                });
+                            });
                         });
                     });
                 });
@@ -510,6 +520,27 @@ router.post('/add_user_cards',  passport.authenticate('jwt', { session: false}),
                 return res.json({success: false, msg: 'Cards of user did not add.', error: err });
             }
             res.json({success: true, msg: 'Successful added Cards of user.'});
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.get('/get_user_cards_count', passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        UserCards.findOne({
+            game: req.query.game,
+            table: req.query.table,
+            user: req.query.user
+        }, function(err, cards) {
+            if (err) throw err;
+            if (!cards) {
+                return res.status(403).send({success: false, msg: 'User Cards can not receive. '});
+            } else {
+                res.json({success: true, cards_count: cards.cards.length});
+            }
         });
     } else {
         return res.status(403).send({success: false, msg: 'No token provided.'});

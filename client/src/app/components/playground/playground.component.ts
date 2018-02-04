@@ -24,6 +24,7 @@ export class PlaygroundComponent implements OnInit {
 
   chairs: object[];
   users: object[];
+  usersCardsCount = [];
   styles: string = "board-container";
   rotatePlayer: string = "";
   top: number = 0;
@@ -174,6 +175,7 @@ export class PlaygroundComponent implements OnInit {
         this.users = res['users'];
         for (var _i = 0; _i < this.users.length; _i++) {
           var user = this.users[_i];
+          // this.users
           if (this.user_email == user['email']) {
             this.myChair = user['chair'];
             this.start_game.emit(this.myChair);
@@ -314,9 +316,20 @@ export class PlaygroundComponent implements OnInit {
       table: this.room,
       user: this.user_email
     }).subscribe((res) => {
-      console.log(res);
       if (res['success'])
         this.myCards = res['cards'];
+      if (this.startedGame) {
+        for (let j = 0; j < this.users.length; j++ ) {
+          let user = this.users[j];
+          this.cardService.getUserCardsCount({game: this.game, table: this.room, user: user['email']}).subscribe((res) => {
+            this.users[j]['cards_count'] = res['cards_count'];
+            console.log(this.users[j]);
+          });
+        }
+        // setTimeout(() => {
+
+        // }, 1000);
+      }
     });
   }
 
@@ -324,6 +337,23 @@ export class PlaygroundComponent implements OnInit {
     this.authenticationService.getUserName(email).subscribe((res) => {
       return res.toString();
     });
+  }
+
+  getUserCardsCount(user) {
+    let res = this.cardService.getUserCardsCount({game: this.game, table: this.room, user: user}).subscribe((res) => {
+      // if(res['success']) {
+        return res['cards_count'];
+      // }
+    });
+    return res;
+  }
+
+  getArray(n: number) {
+    let arr = [];
+    for (let i = 0; i < n; i ++) {
+      arr.push('blue_b');
+    }
+    return arr;
   }
 
 }

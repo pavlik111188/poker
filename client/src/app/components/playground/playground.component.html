@@ -32,6 +32,11 @@
           <img src="assets/img/cards/{{ card | uppercase }}.svg" />
         </span>
       </div>
+      <div *ngIf="user.email != user_email && user.cards_count > 0" class="cards-area">
+        <span *ngFor="let card_b of getArray(user.cards_count)">
+          <img src="assets/img/cards/{{ card_b }}.svg" />
+        </span>
+      </div>
     </div>
   </div>
   <button *ngIf="userCanStart" class="btn btn-primary start" (click)="newGame()">Start Game</button>

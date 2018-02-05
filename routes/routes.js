@@ -20,6 +20,7 @@ const UserInChat = require('../models/user_in_chat'); // get the mongoose model
 const Chair = require('../models/chair'); // get the mongoose model
 const StartedGame = require('../models/started_game'); // get the mongoose model
 const UserCards = require('../models/user_cards'); // get the mongoose model
+const Pack = require('../models/pack'); // get the mongoose model
 
 // test
 router.get('/test', function ( req, res, next) {
@@ -100,36 +101,40 @@ router.post('/remove_table',  passport.authenticate('jwt', { session: false}), f
         if (decoded.user.email == req.body.email) {
             Table.remove({
                 _id: req.body.id
-            }, function (err) {
-                if (err) return next(err);
-                Chat.remove({
-                    room: req.body.id
-                }, function(err) {
-                    if (err) throw err;
-                    Message.remove({
-                        room: req.body.id
-                    }, function(err) {
-                        if (err) throw err;
-                        UserInChat.remove({
-                            room: req.body.id
-                        }, function(err) {
-                            if (err) throw err;
-                            StartedGame.remove({
-                                table: req.body.id
-                            }, function(err) {
-                                if (err) throw err;
-                                UserCards.remove({
-                                    table: req.body.id
-                                }, function(err) {
-                                    if (err) throw err;
-
-                                });
-                            });
-                        });
-                    });
-                });
-                res.json({success: true, msg: 'Successful deleted table.'});
+            }, function(err) {
+                if (err) throw err;
             });
+            Chat.remove({
+                room: req.body.id
+            }, function(err) {
+                if (err) throw err;
+            });
+            Message.remove({
+                room: req.body.id
+            }, function(err) {
+                if (err) throw err;
+            });
+            UserInChat.remove({
+                room: req.body.id
+            }, function(err) {
+                if (err) throw err;
+            });
+            StartedGame.remove({
+                table: req.body.id
+            }, function(err) {
+                if (err) throw err;
+            });
+            UserCards.remove({
+                table: req.body.id
+            }, function(err) {
+                if (err) throw err;
+            });
+            Pack.remove({
+                room: req.body.id
+            }, function(err) {
+                if (err) throw err;
+            });
+            res.json({success: true, msg: 'Successful deleted table.'});
         } else {
             return res.json({success: false, msg: 'You are not owner of this table' });
         }
@@ -540,6 +545,25 @@ router.get('/get_user_cards_count', passport.authenticate('jwt', { session: fals
                 return res.status(403).send({success: false, msg: 'User Cards can not receive. '});
             } else {
                 res.json({success: true, cards_count: cards.cards.length});
+            }
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.get('/get_pack', passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        Pack.findOne({
+            room: req.query.room
+        }, function(err, pack) {
+            if (err) throw err;
+            if (!pack) {
+                return res.status(403).send({success: false, msg: 'Pack can not receive. '});
+            } else {
+                res.json({success: true, pack: pack.cards});
             }
         });
     } else {

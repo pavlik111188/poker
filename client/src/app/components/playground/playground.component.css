@@ -61,6 +61,26 @@
   height: 50px;
 }
 
+.pack-area {
+  position: absolute;
+  height: 50px;
+  width: 50px;
+  right: 215px;
+  top: 260px;
+}
+
+.pack-area > span {
+  margin-left: -39.5px;
+}
+
+.pack-area > span:first-child {
+  margin-left: 0;
+}
+
+.pack-area > span > img {
+  height: 50px;
+}
+
 .suit {
   height: 70px;
   margin: 10px;

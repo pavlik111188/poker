@@ -37,6 +37,9 @@ export class DashboardComponent implements OnInit {
   }*/
 
   ngOnInit() {
+    setTimeout(() => {
+      this.getTableList();
+    }, 500);
     this.getTableList();
     this.createForm();
     this.currentUserEmail = localStorage.getItem('user_email');

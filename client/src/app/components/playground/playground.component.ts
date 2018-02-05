@@ -42,6 +42,8 @@ export class PlaygroundComponent implements OnInit {
   cards: any;
   trump: string;
   myCards: any;
+  pack: any;
+  pack_count: number;
 
   constructor(
     private chairService: ChairService,
@@ -55,6 +57,7 @@ export class PlaygroundComponent implements OnInit {
   }
 
   ngOnInit() {
+    // this.encode(atob('W3siX2lkIjoiNWE1Mjg1MWFmMjE1NjAzNjdkNmIzNDIxIiwibmFtZSI6IjZzIiwicmFuayI6NSwic3VpdCI6InNwYWRlIn0seyJfaWQiOiI1YTUyODhlZWYyMTU2MDM2N2Q2YjM1YTciLCJuYW1lIjoiNmgiLCJyYW5rIjo1LCJzdWl0IjoiaGVhcnQifSx7Il9pZCI6IjVhNTI4OWMzZjIxNTYwMzY3ZDZiMzYwYiIsIm5hbWUiOiI2YyIsInJhbmsiOjUsInN1aXQiOiJjbHViIn0seyJfaWQiOiI1YTUyODUyZGYyMTU2MDM2N2Q2YjM0MjciLCJuYW1lIjoiN3MiLCJyYW5rIjo2LCJzdWl0Ijoic3BhZGUifSx7Il9pZCI6IjVhNTI4N2I3ZjIxNTYwMzY3ZDZiMzUyOCIsIm5hbWUiOiI3ZCIsInJhbmsiOjYsInN1aXQiOiJkaWFtb25kIn0seyJfaWQiOiI1YTUyODhmY2YyMTU2MDM2N2Q2YjM1YjAiLCJuYW1lIjoiN2giLCJyYW5rIjo2LCJzdWl0IjoiaGVhcnQifSx7Il9pZCI6IjVhNTI4NTU2ZjIxNTYwMzY3ZDZiMzQzYSIsIm5hbWUiOiI4cyIsInJhbmsiOjcsInN1aXQiOiJzcGFkZSJ9LHsiX2lkIjoiNWE1Mjg3YzNmMjE1NjAzNjdkNmIzNTJjIiwibmFtZSI6IjhkIiwicmFuayI6Nywic3VpdCI6ImRpYW1vbmQifSx7Il9pZCI6IjVhNTI4OTBhZjIxNTYwMzY3ZDZiMzViNCIsIm5hbWUiOiI4aCIsInJhbmsiOjcsInN1aXQiOiJoZWFydCJ9LHsiX2lkIjoiNWE1Mjg5ZTFmMjE1NjAzNjdkNmIzNjE3IiwibmFtZSI6IjhjIiwicmFuayI6Nywic3VpdCI6ImNsdWIifSx7Il9pZCI6IjVhNTI4NTc0ZjIxNTYwMzY3ZDZiMzQ0NCIsIm5hbWUiOiI5cyIsInJhbmsiOjgsInN1aXQiOiJzcGFkZSJ9LHsiX2lkIjoiNWE1Mjg5ZjNmMjE1NjAzNjdkNmIzNjIwIiwibmFtZSI6IjljIiwicmFuayI6OCwic3VpdCI6ImNsdWIifSx7Il9pZCI6IjVhNTI4NWJmZjIxNTYwMzY3ZDZiMzQ2MCIsIm5hbWUiOiIxMHMiLCJyYW5rIjo5LCJzdWl0Ijoic3BhZGUifSx7Il9pZCI6IjVhNTI4YTA1ZjIxNTYwMzY3ZDZiMzYyYSIsIm5hbWUiOiIxMGMiLCJyYW5rIjo5LCJzdWl0IjoiY2x1YiJ9LHsiX2lkIjoiNWE1Mjg4MWRmMjE1NjAzNjdkNmIzNTUzIiwibmFtZSI6ImpkIiwicmFuayI6MTAsInN1aXQiOiJkaWFtb25kIn0seyJfaWQiOiI1YTUyODkzYmYyMTU2MDM2N2Q2YjM1Y2QiLCJuYW1lIjoiamgiLCJyYW5rIjoxMCwic3VpdCI6ImhlYXJ0In0seyJfaWQiOiI1YTUyOGExYmYyMTU2MDM2N2Q2YjM2MzAiLCJuYW1lIjoiamMiLCJyYW5rIjoxMCwic3VpdCI6ImNsdWIifSx7Il9pZCI6IjVhNTI4ODMyZjIxNTYwMzY3ZDZiMzU1YiIsIm5hbWUiOiJxZCIsInJhbmsiOjExLCJzdWl0IjoiZGlhbW9uZCJ9LHsiX2lkIjoiNWE1Mjg5NGVmMjE1NjAzNjdkNmIzNWQ1IiwibmFtZSI6InFoIiwicmFuayI6MTEsInN1aXQiOiJoZWFydCJ9LHsiX2lkIjoiNWE1Mjg2OGFmMjE1NjAzNjdkNmIzNGFlIiwibmFtZSI6ImtzIiwicmFuayI6MTIsInN1aXQiOiJzcGFkZSJ9LHsiX2lkIjoiNWE1Mjg4NDRmMjE1NjAzNjdkNmIzNTYzIiwibmFtZSI6ImtkIiwicmFuayI6MTIsInN1aXQiOiJkaWFtb25kIn0seyJfaWQiOiI1YTUyODk2NWYyMTU2MDM2N2Q2YjM1ZGYiLCJuYW1lIjoia2giLCJyYW5rIjoxMiwic3VpdCI6ImhlYXJ0In0seyJfaWQiOiI1YTUyODk3NWYyMTU2MDM2N2Q2YjM1ZTgiLCJuYW1lIjoiYWgiLCJyYW5rIjoxMywic3VpdCI6ImhlYXJ0In0seyJfaWQiOiI1YTUyOGE0OWYyMTU2MDM2N2Q2YjM2NDciLCJuYW1lIjoiYWMiLCJyYW5rIjoxMywic3VpdCI6ImNsdWIifV0='));
     ResizeProvider.resizeAction.subscribe((isLandscape: boolean)=>{
       this.resizeActionHandler(isLandscape);
     });
@@ -77,7 +80,7 @@ export class PlaygroundComponent implements OnInit {
       if (data.name == this.room) {
         setTimeout(() => {
           this.getUsersInChat(data.name);
-          this.canStart();
+
         }, 1500);
 
       }
@@ -90,6 +93,18 @@ export class PlaygroundComponent implements OnInit {
           this.getStartedGame();
         }, 1500);
       }
+    });
+
+    this.socket.on('update-table-game', (data) => {
+      // if (data.table == this.room) {
+        if (data.action == 'choose-chair') {
+          // this.canStart();
+        }
+        if (data.action == 'update-pack') {
+          this.decode(data.cards);
+          console.log(data);
+        }
+      // }
     });
 
     this.tableService.getTableInfo(this.room).subscribe((res) => {
@@ -181,6 +196,7 @@ export class PlaygroundComponent implements OnInit {
             this.start_game.emit(this.myChair);
           }
         }
+        this.canStart();
       }
     },
     (err) =>{
@@ -192,6 +208,7 @@ export class PlaygroundComponent implements OnInit {
     this.chatService.addUserToChat({room: this.room, chair: id, position: position, name: this.user_name}).subscribe((res) => {
       if (res['success']) {
         this.getUsersInChat(this.room);
+        this.socket.emit('update-table-game', {room: this.room, action: 'choose-chair'});
       }
     },
       (err) => {
@@ -288,9 +305,26 @@ export class PlaygroundComponent implements OnInit {
           console.log(err);
         });
     }
-
+    let encodeCards = this.encode(JSON.stringify(this.cards));
+    this.socket.emit('update-table-game', {game: this.game, room: this.room, cards: encodeCards, action: 'update-pack'});
     this.addStartedGame();
 
+  }
+
+  encode(str) {
+    let encTable = btoa(this.room);
+    let encCardsArray = btoa(str);
+    let customStr = btoa('fmW(9f3%6bA1jhSINVV3ouYYYGb1=!v+MSA7yHBB');
+    let encRes = encTable + customStr + encCardsArray;
+    return encRes;
+  }
+
+  decode(str) {
+    let encTable = btoa(this.room);
+    let customStr = btoa('fmW(9f3%6bA1jhSINVV3ouYYYGb1=!v+MSA7yHBB');
+    let decRes = atob(str.slice(encTable.length + customStr.length));
+    this.pack = JSON.parse(decRes);
+    this.pack_count = this.pack.length;
   }
 
   newGame() {
@@ -323,12 +357,11 @@ export class PlaygroundComponent implements OnInit {
           let user = this.users[j];
           this.cardService.getUserCardsCount({game: this.game, table: this.room, user: user['email']}).subscribe((res) => {
             this.users[j]['cards_count'] = res['cards_count'];
-            console.log(this.users[j]);
           });
         }
-        // setTimeout(() => {
-
-        // }, 1000);
+        if (!this.pack) {
+          this.getPack();
+        }
       }
     });
   }
@@ -348,12 +381,24 @@ export class PlaygroundComponent implements OnInit {
     return res;
   }
 
+  updatePack(cards) {
+    this.cardService.updatePack({game: this.game, table: this.room, cards: cards}).subscribe((res) => {
+      this.pack = cards;
+    });
+  }
+
   getArray(n: number) {
     let arr = [];
     for (let i = 0; i < n; i ++) {
       arr.push('blue_b');
     }
     return arr;
+  }
+
+  getPack() {
+    this.cardService.getPack({room: this.room}).subscribe((res) => {
+      this.decode(res['pack']);
+    });
   }
 
 }

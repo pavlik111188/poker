@@ -44,4 +44,9 @@
   <div *ngIf="startedGame">
     <img class="suit" src="assets/img/cards/{{ trump }}.svg" />
   </div>
+  <div *ngIf="startedGame && pack_count" class="pack-area">
+        <span *ngFor="let card of getArray(pack_count)">
+          <img src="assets/img/cards/{{ card }}.svg" />
+        </span>
+  </div>
 </div>

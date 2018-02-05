@@ -6,6 +6,7 @@ import 'rxjs/add/operator/toPromise';
 import { AuthenticationService } from '../services/authentication.service';
 import { Card } from '../models/card.model';
 import { UserCards } from '../models/user_cards.model';
+import { Pack } from '../models/pack.model';
 
 @Injectable()
 export class CardService {
@@ -17,6 +18,8 @@ export class CardService {
     private addUserCardsUrl = 'add_user_cards';
     private getUserCardsUrl = 'get_user_cards';
     private getUserCardsCountUrl = 'get_user_cards_count';
+    private updatePackUrl = 'update_pack';
+    private getPackUrl = 'get_pack';
 
     constructor(
         private http: HttpClient,
@@ -49,11 +52,25 @@ export class CardService {
         .map(response => response);
     }
 
-  getUserCardsCount(data) {
-    const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
-    const url = `${this.domain}${this.getUserCardsCountUrl}`;
-    return this.http.get<UserCards>(url, {headers: headers, params: data})
-      .map((response) => response);
-  }
+    getUserCardsCount(data) {
+      const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
+      const url = `${this.domain}${this.getUserCardsCountUrl}`;
+      return this.http.get<UserCards>(url, {headers: headers, params: data})
+        .map((response) => response);
+    }
+
+    updatePack(data) {
+      const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
+      const url = `${this.domain}${this.updatePackUrl}`;
+      return this.http.post(url, data, {headers: headers})
+        .map(response => response);
+    }
+
+    getPack(data) {
+      const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
+      const url = `${this.domain}${this.getPackUrl}`;
+      return this.http.get<UserCards>(url, {headers: headers, params: data})
+        .map((response) => response);
+    }
 
 }

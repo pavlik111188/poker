@@ -21,14 +21,13 @@ const Chair = require('../models/chair'); // get the mongoose model
 const StartedGame = require('../models/started_game'); // get the mongoose model
 const UserCards = require('../models/user_cards'); // get the mongoose model
 const Pack = require('../models/pack'); // get the mongoose model
+const Turn = require('../models/turn'); // get the mongoose model
 
 // test
 router.get('/test', function ( req, res, next) {
    res.send('TEST page is working!!!');
    console.log('Worked!');
 });
-
-
 
 // create a new user account (POST http://localhost:8085/api/signup)
 router.post('/signup', function( req, res, next ) {
@@ -130,6 +129,11 @@ router.post('/remove_table',  passport.authenticate('jwt', { session: false}), f
                 if (err) throw err;
             });
             Pack.remove({
+                room: req.body.id
+            }, function(err) {
+                if (err) throw err;
+            });
+            Turn.remove({
                 room: req.body.id
             }, function(err) {
                 if (err) throw err;
@@ -564,6 +568,47 @@ router.get('/get_pack', passport.authenticate('jwt', { session: false}), functio
                 return res.status(403).send({success: false, msg: 'Pack can not receive. '});
             } else {
                 res.json({success: true, pack: pack.cards});
+            }
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.post('/add_turn',  passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        var newTurn = new Turn({
+            game: req.body.game,
+            room: req.body.room,
+            user: decoded.user.email,
+            card: req.body.card,
+            part_game: req.body.part_game
+        });
+        newTurn.save(function(err) {
+            if (err) {
+                return res.json({success: false, msg: 'Your turn did not add.', error: err });
+            }
+            res.json({success: true, msg: 'Successful added new turn.'});
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.get('/get_turn', passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        Turn.find({
+            room: req.query.room
+        }, function(err, turns) {
+            if (err) throw err;
+            if (!turns) {
+                return res.status(403).send({success: false, msg: 'Pack can not receive. '});
+            } else {
+                res.json({success: true, turns: turns});
             }
         });
     } else {

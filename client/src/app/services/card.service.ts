@@ -7,6 +7,7 @@ import { AuthenticationService } from '../services/authentication.service';
 import { Card } from '../models/card.model';
 import { UserCards } from '../models/user_cards.model';
 import { Pack } from '../models/pack.model';
+import {Turn} from "../models/turn.model";
 
 @Injectable()
 export class CardService {
@@ -20,6 +21,8 @@ export class CardService {
     private getUserCardsCountUrl = 'get_user_cards_count';
     private updatePackUrl = 'update_pack';
     private getPackUrl = 'get_pack';
+    private addTurnUrl = 'add_turn';
+    private getTurnUrl = 'get_turn';
 
     constructor(
         private http: HttpClient,
@@ -70,6 +73,20 @@ export class CardService {
       const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
       const url = `${this.domain}${this.getPackUrl}`;
       return this.http.get<UserCards>(url, {headers: headers, params: data})
+        .map((response) => response);
+    }
+
+    addTurn(data) {
+      const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
+      const url = `${this.domain}${this.addTurnUrl}`;
+      return this.http.post(url, data, {headers: headers})
+        .map(response => response);
+    }
+
+    getTurns(data) {
+      const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
+      const url = `${this.domain}${this.getTurnUrl}`;
+      return this.http.get<Turn>(url, {headers: headers, params: data})
         .map((response) => response);
     }
 

@@ -44,6 +44,8 @@ export class PlaygroundComponent implements OnInit {
   myCards: any;
   pack: any;
   pack_count: number;
+  allCards: any;
+  lowestTrumpResult: any;
 
   constructor(
     private chairService: ChairService,
@@ -96,15 +98,18 @@ export class PlaygroundComponent implements OnInit {
     });
 
     this.socket.on('update-table-game', (data) => {
-      // if (data.table == this.room) {
+      if (data.room == this.room) {
         if (data.action == 'choose-chair') {
           // this.canStart();
         }
         if (data.action == 'update-pack') {
           this.decode(data.cards);
-          console.log(data);
         }
-      // }
+        if (data.action == 'get-lowest-trump') {
+          if (!this.lowestTrumpResult)
+            this.getLowestTrumpResult(data.result);
+        }
+      }
     });
 
     this.tableService.getTableInfo(this.room).subscribe((res) => {
@@ -112,26 +117,8 @@ export class PlaygroundComponent implements OnInit {
       this.canStart();
     });
 
+
   }
-
-  /******************* BOARD UTILS **********************/
-  /*boardActionHandler(data: RequestModel) {
-    if (data && data.type == REQUEST_UPDATE && data.data["action"] && data.data["action"] == "start-game") {
-      this.updateGameController();
-    }
-  }*/
-
-  /*updateGameController() {
-    if (++this.animStackIndex >= this.animStack.length) {
-      this.animStackIndex = 0;
-    }
-
-    let action = this.animStack[this.animStackIndex];
-    // ApiProvider.animAction.next(action["model"]);
-    setTimeout(()=>{
-      this.updateGameController();
-    }, action["duration"]);
-  }*/
 
   /******************** RESIZE UTILS **********************/
   resizeActionHandler(isLandscape: boolean) {
@@ -271,6 +258,7 @@ export class PlaygroundComponent implements OnInit {
     if (!this.startedGame) {
       this.cardService.cardList(type).subscribe((res) => {
           if (res['success']) {
+            this.allCards = res['card_list'];
             this.distributionCards(res['card_list']);
           }
         },
@@ -288,7 +276,7 @@ export class PlaygroundComponent implements OnInit {
       let userCards = [];
       for (let i = 0; i < 6; i++) {
         let rand = Math.floor(Math.random() * this.cards.length);
-        userCards.push(this.cards[rand].name);
+        userCards.push({card: this.cards[rand].name, rank: this.cards[rand].rank});
         this.cards.splice(rand, 1);
       }
       this.cardService.addUserCards({
@@ -340,6 +328,7 @@ export class PlaygroundComponent implements OnInit {
         this.trump = this.cards[key].suit;
         this.getCardList();
         this.getUserCards();
+        this.getLowestTrump();
       }
     });
   }
@@ -398,7 +387,61 @@ export class PlaygroundComponent implements OnInit {
   getPack() {
     this.cardService.getPack({room: this.room}).subscribe((res) => {
       this.decode(res['pack']);
+      this.getTurns();
     });
+  }
+
+  getLowestTrump() {
+    let trump = this.trump.charAt(0);
+    let trumpsArray = [];
+    this.socket.emit('update-table-game', {room: this.room, action: 'get-lowest-trump', user: this.user_email, trump: trump});
+    /*for (let key of this.myCards) {
+      if (trump == key.card.slice(1))
+        trumpsArray.push(key);
+    }
+    if (trumpsArray.length > 0) {
+
+    } else {
+      console.log(trumpsArray);
+    }*/
+  }
+
+  getLowestTrumpResult(data) {
+    if (data.card) {
+      let pos;
+      for (let user of this.users) {
+        if (data.user == user['email']) {
+          pos = user['position'];
+        }
+      }
+      this.lowestTrumpResult = {card: data.card, position: pos};
+    } else {
+      this.startedGame = false;
+      this.getCardList();
+    }
+  }
+
+  getTurns() {
+    this.getAllCards();
+    this.cardService.getTurns({room: this.room}).subscribe((res) => {
+      if (res['success'] && res['turns'].length > 0) {
+        console.log(res);
+      } else {
+        this.getLowestTrump();
+      }
+    });
+  }
+
+  getAllCards() {
+    const type = this.game == 'Дурак' ? 1 : 0;
+    this.cardService.cardList(type).subscribe((res) => {
+        if (res['success']) {
+          this.allCards = res['card_list'];
+        }
+      },
+      (err) => {
+        console.log(err);
+      });
   }
 
 }

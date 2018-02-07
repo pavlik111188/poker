@@ -27,15 +27,15 @@
     <div *ngFor="let user of users"
          [ngStyle]="{'top':user.position[0],'left':user.position[1]}" class="player-container">
       {{ user.name }}
-      <div *ngIf="myCards && user.email == user_email" class="cards-area">
-        <span *ngFor="let card of myCards">
-          <img src="assets/img/cards/{{ card | uppercase }}.svg" />
-        </span>
+      <div *ngIf="myCards && user.email == user_email" class="cards-area player-cards">
+        <div *ngFor="let card of myCards">
+          <img src="assets/img/cards/{{ card.card | uppercase }}.svg" />
+        </div>
       </div>
       <div *ngIf="user.email != user_email && user.cards_count > 0" class="cards-area">
-        <span *ngFor="let card_b of getArray(user.cards_count)">
+        <div *ngFor="let card_b of getArray(user.cards_count)">
           <img src="assets/img/cards/{{ card_b }}.svg" />
-        </span>
+        </div>
       </div>
     </div>
   </div>
@@ -43,6 +43,9 @@
 
   <div *ngIf="startedGame">
     <img class="suit" src="assets/img/cards/{{ trump }}.svg" />
+    <div *ngIf="lowestTrumpResult" class="lowest-trump" [ngStyle]="{'top':lowestTrumpResult.position[0],'left':lowestTrumpResult.position[1]}">
+      <img src="assets/img/cards/{{ lowestTrumpResult.card | uppercase }}.svg" />
+    </div>
   </div>
   <div *ngIf="startedGame && pack_count" class="pack-area">
         <span *ngFor="let card of getArray(pack_count)">

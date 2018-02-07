@@ -4,14 +4,17 @@ var mongoose = require('mongoose');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
-var Chat = require('../models/chat.js');
-var Message = require('../models/message.js');
-var User = require('../models/user.js');
-var UserInChat = require('../models/user_in_chat.js');
+const Chat = require('../models/chat.js');
+const Message = require('../models/message.js');
+const User = require('../models/user.js');
+const UserInChat = require('../models/user_in_chat.js');
 const Pack = require('../models/pack'); // get the mongoose model
+const UserCards = require('../models/user_cards'); // get the mongoose model
+const Card = require('../models/card'); // get the mongoose model
 var clients = [];
 const passport	= require('passport');
 const jwt       = require('jwt-simple');
+const async = require('async');
 
 server.listen(4000);
 
@@ -42,21 +45,148 @@ io.on('connection', function (socket) {
     });
 
     socket.on('update-table-game', function (data) {
-        io.emit('update-table-game', data);
         if (data.action == 'choose-chair') {
-            io.in(data.room).emit('update-table-game', { message: data });
+            io.emit('update-table-game', data);
         }
         if (data.action == 'update-pack') {
             var result = data;
             if (data.cards) {
                 updatePack(data);
-                io.in(data.room).emit('update-table-game', result);
+                io.emit('update-table-game', result);
             } else {
 
             }
         }
+        if (data.action == 'get-lowest-trump') {
+            getUsersCards(data.room, data.trump);
+            // io.emit('update-table-game', {room: data.room, result: result});
+        }
     });
 });
+
+function getUsersCards(room, trump) {
+    var trumpsArray;
+    var minRank = 14;
+    var minCard = '';
+    var userCards;
+    UserCards.find({
+        table: room
+    }, function (err, user_cards) {
+        userCards = user_cards;
+        getUserTrumps(user_cards, trump, room);
+    });
+
+    /*UserCards.find({
+        table: room
+    }, function (err, user_cards) {
+        if (err) {
+            // return err;
+        } else {
+            userCards = user_cards;
+            if(user_cards.length > 0) {
+                for (var i = 0; i < user_cards.length; i++) {
+                    var userId = i;
+                    var cards = user_cards[i].cards;
+                    var trumps = [];
+                    var userEmail = user_cards[i].user;
+
+                    for (var c = 0; c < cards.length; c++) {
+                        if (trump == cards[c].slice(1))
+                            trumps.push(cards[c]);
+                    }
+
+                    if (trumps.length > 0) {
+                        var userTrumps = {user: user_cards[i].user, trumps: trumps};
+                        var trumpsLen = trumps.length;
+                        for (var t = 0; t < userTrumps.trumps.length; t++) {
+                            console.log(trumps[t]);
+                            Card.findOne({
+                                name: trumps[t]
+                            }, function (err, res) {
+                                if (err) {
+                                    // return err;
+                                } else {
+                                    if (res.rank < minRank) {
+                                        minRank = res.rank;
+                                        console.log(res.rank, res.name);
+                                        console.log(userTrumps);
+                                        trumpsArray = {user: userTrumps.user, minRank: res.rank, card: res.name};
+                                        if (t == trumpsLen) {
+                                            if (i == userCards.length) {
+                                                io.emit('update-table-game', {room: room, action: 'get-lowest-trump', result: trumpsArray});
+                                                // return trumpsArray;
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                            /!*if (result) {
+                                console.log('result: ', result);
+                                if (result.rank < minRank) {
+                                    minRank = result.rank;
+                                    minCard = result.name;
+                                }
+                            }*!/
+                        }
+                        // trumpsArray.push({user: res[i].user, minRank: {card: minCard, rank: minRank}});
+                    }
+                }
+            }
+        }
+
+    });*/
+}
+
+function getUserTrumps(data, trump, room) {
+    var userTrumps = [];
+    for (var i = 0; i < data.length; i++) {
+        var userId = i;
+        var cards = data[i].cards;
+        var trumps = [];
+        var userEmail = data[i].user;
+
+        for (var c = 0; c < cards.length; c++) {
+            if (trump == cards[c].card.slice(1))
+                trumps.push(cards[c]);
+        }
+        userTrumps.push({user: data[i].user, trumps: trumps});
+    }
+    getLowestTrump(userTrumps, room);
+}
+
+function getLowestTrump(userTrumps, room) {
+    var minRank = 14;
+    var lowestRank = {};
+    var items_list, users_list;
+    for (var i=0; i < userTrumps.length; i++) {
+        if (userTrumps[i].trumps.length > 0){
+            var user = userTrumps[i];
+            for (var j=0; j < user.trumps.length; j++) {
+                if (user.trumps[j].rank < minRank) {
+                    minRank = user.trumps[j].rank;
+                    lowestRank = {user: user.user, card: user.trumps[j].card};
+                }
+            }
+        }
+    }
+    io.emit('update-table-game', {room: room, action: 'get-lowest-trump', result: lowestRank});
+}
+
+function decode(str, room) {
+    var encTable = Buffer.from(room).toString('base64');
+    var customStr = Buffer.from('fmW(9f3%6bA1jhSINVV3ouYYYGb1=!v+MSA7yHBB').toString('base64');
+    // var decRes = atob(str.slice(encTable.length + customStr.length));
+    var decRes = Buffer.from(str.slice(encTable.length + customStr.length), 'base64').toString();
+    return decRes;
+}
+
+function encode(str, room) {
+    var encTable = Buffer.from(room).toString('base64');
+    var encCardsArray = Buffer.from(str).toString('base64');
+    var customStr = Buffer.from('fmW(9f3%6bA1jhSINVV3ouYYYGb1=!v+MSA7yHBB').toString('base64');
+    var encRes = encTable + customStr + encCardsArray;
+    return encRes;
+}
 
 function updatePack(data) {
     /*console.log('data: ', data);

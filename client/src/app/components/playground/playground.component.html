@@ -4,20 +4,6 @@
      [style.top.px]="top"
      [style.left.px]="left">
   <div class="go-to-home"><a [routerLink]="['/dashboard']"><span class="glyphicon glyphicon-arrow-left"></span></a></div>
-  <!--<div *ngFor="let chair of chairs; let i = index"
-       (click)="chooseChair(chair._id)"
-       [ngStyle]="{'top':chair.top,'left':chair.left}" class="player-container">
-    <div *ngIf="!findInArray(chair._id); else isNotFree">Free</div>
-    <ng-template #isNotFree>
-      {{ getUserByChair(chair._id) | getUserName }}
-      <div *ngIf="myCards && getUserByChair(chair._id) == user_email" class="cards-area">
-        <span *ngFor="let card of myCards">
-          <img src="assets/img/cards/{{ card | uppercase }}.svg" />
-        </span>
-      </div>
-
-    </ng-template>
-  </div>-->
   <div *ngFor="let chair of chairs; let i = index"
        (click)="chooseChair(chair._id, [chair.top,chair.left])"
        [ngStyle]="{'top':chair.top,'left':chair.left}" class="player-container">
@@ -29,7 +15,7 @@
       {{ user.name }}
       <div *ngIf="myCards && user.email == user_email" class="cards-area player-cards">
         <div *ngFor="let card of myCards">
-          <img src="assets/img/cards/{{ card.card | uppercase }}.svg" />
+          <img (click)="turn(card.card)" src="assets/img/cards/{{ card.card | uppercase }}.svg" />
         </div>
       </div>
       <div *ngIf="user.email != user_email && user.cards_count > 0" class="cards-area">
@@ -41,9 +27,9 @@
   </div>
   <button *ngIf="userCanStart" class="btn btn-primary start" (click)="newGame()">Start Game</button>
 
-  <div *ngIf="startedGame">
+  <div class="trump-suit" *ngIf="startedGame">
     <img class="suit" src="assets/img/cards/{{ trump }}.svg" />
-    <div *ngIf="lowestTrumpResult" class="lowest-trump" [ngStyle]="{'top':lowestTrumpResult.position[0],'left':lowestTrumpResult.position[1]}">
+    <div *ngIf="showLowestTrump" class="lowest-trump" [ngStyle]="{'top':lowestTrumpResult.position[0],'left':lowestTrumpResult.position[1]}">
       <img src="assets/img/cards/{{ lowestTrumpResult.card | uppercase }}.svg" />
     </div>
   </div>

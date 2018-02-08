@@ -6,6 +6,7 @@ import 'rxjs/add/operator/toPromise';
 import { AuthenticationService } from '../services/authentication.service';
 import { Game } from '../models/game.model';
 import { StartedGame } from '../models/started_game.model';
+import {GamePart} from "../models/game_part.model";
 
 @Injectable()
 export class GameService {
@@ -16,6 +17,8 @@ export class GameService {
   private getGameListUrl = 'games';
   private getStartedGameUrl = 'get_started_game';
   private addStartedGameUrl = 'add_started_game';
+  private addGamePartUrl = 'add_game_part';
+  private getGamePartUrl = 'get_game_part';
 
   constructor(
     private http: HttpClient,
@@ -46,6 +49,20 @@ export class GameService {
     const url = `${this.domain}${this.addStartedGameUrl}`;
     return this.http.post(url, {game: data.game, table: data.table, trump: data.trump}, {headers: headers})
       .map(response => response);
+  }
+
+  addGamePart(data) {
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
+    const url = `${this.domain}${this.addGamePartUrl}`;
+    return this.http.post(url, data, {headers: headers})
+      .map(response => response);
+  }
+
+  getGamePart(data) {
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
+    const url = `${this.domain}${this.getGamePartUrl}`;
+    return this.http.get<GamePart>(url, {headers: headers, params: data})
+      .map((response) => response);
   }
 
 }

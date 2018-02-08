@@ -37,6 +37,8 @@
 .go-to-home {
   padding: 20px;
   width: 20px;
+  position: absolute;
+  z-index: 2;
 }
 
 .start {
@@ -111,6 +113,11 @@
 
 .lowest-trump > img {
   height: 80px;
+}
+
+.trump-suit {
+  position: absolute;
+  top: 45px;
 }
 
 @media (min-width: 768px) {

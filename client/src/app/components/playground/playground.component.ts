@@ -46,6 +46,10 @@ export class PlaygroundComponent implements OnInit {
   pack_count: number;
   allCards: any;
   lowestTrumpResult: any;
+  showLowestTrump: boolean = false;
+  userTurn: string;
+  gamePart: number = 1;
+  showCardsOnTable: boolean = false;
 
   constructor(
     private chairService: ChairService,
@@ -287,7 +291,9 @@ export class PlaygroundComponent implements OnInit {
       }).subscribe((res) => {
           this.startedGame = true;
           this.userCanStart = false;
-          this.getUserCards();
+          if (j == this.users.length - 1) {
+            this.getUserCards();
+          }
         },
         (err) => {
           console.log(err);
@@ -328,7 +334,6 @@ export class PlaygroundComponent implements OnInit {
         this.trump = this.cards[key].suit;
         this.getCardList();
         this.getUserCards();
-        this.getLowestTrump();
       }
     });
   }
@@ -346,6 +351,11 @@ export class PlaygroundComponent implements OnInit {
           let user = this.users[j];
           this.cardService.getUserCardsCount({game: this.game, table: this.room, user: user['email']}).subscribe((res) => {
             this.users[j]['cards_count'] = res['cards_count'];
+            if (j == this.users.length - 1) {
+              setTimeout(() => {
+                this.getLowestTrump();
+              }, 1500);
+            }
           });
         }
         if (!this.pack) {
@@ -387,23 +397,13 @@ export class PlaygroundComponent implements OnInit {
   getPack() {
     this.cardService.getPack({room: this.room}).subscribe((res) => {
       this.decode(res['pack']);
-      this.getTurns();
+      this.getParts();
     });
   }
 
   getLowestTrump() {
     let trump = this.trump.charAt(0);
-    let trumpsArray = [];
     this.socket.emit('update-table-game', {room: this.room, action: 'get-lowest-trump', user: this.user_email, trump: trump});
-    /*for (let key of this.myCards) {
-      if (trump == key.card.slice(1))
-        trumpsArray.push(key);
-    }
-    if (trumpsArray.length > 0) {
-
-    } else {
-      console.log(trumpsArray);
-    }*/
   }
 
   getLowestTrumpResult(data) {
@@ -415,16 +415,22 @@ export class PlaygroundComponent implements OnInit {
         }
       }
       this.lowestTrumpResult = {card: data.card, position: pos};
+      this.userTurn = data.user;
+      this.showLowestTrump = true;
+      setTimeout(() => {
+        this.showLowestTrump = false;
+      }, 2500);
+
     } else {
       this.startedGame = false;
       this.getCardList();
     }
   }
 
-  getTurns() {
+  getParts() {
     this.getAllCards();
-    this.cardService.getTurns({room: this.room}).subscribe((res) => {
-      if (res['success'] && res['turns'].length > 0) {
+    this.gameService.getGamePart({room: this.room}).subscribe((res) => {
+      if (res['success'] && res['parts'].length > 0) {
         console.log(res);
       } else {
         this.getLowestTrump();
@@ -442,6 +448,27 @@ export class PlaygroundComponent implements OnInit {
       (err) => {
         console.log(err);
       });
+  }
+
+  turn(card) {
+    console.log(this.userTurn);
+    if (this.userTurn == this.user_email) {
+      this.gameService.addGamePart(
+        {
+        part: this.gamePart,
+        game: this.game,
+        room: this.room,
+        turns: {card: card, user: this.user_email},
+        ended: false
+        }).subscribe((res) => {
+        if (res['success']) {
+          this.userTurn = '';
+          this.showCardsOnTable = true;
+          console.log(this.myCards.indexOf(card));
+        }
+        console.log(res);
+      });
+    }
   }
 
 }

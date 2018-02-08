@@ -22,6 +22,7 @@ const StartedGame = require('../models/started_game'); // get the mongoose model
 const UserCards = require('../models/user_cards'); // get the mongoose model
 const Pack = require('../models/pack'); // get the mongoose model
 const Turn = require('../models/turn'); // get the mongoose model
+const GamePart = require('../models/game_part'); // get the mongoose model
 
 // test
 router.get('/test', function ( req, res, next) {
@@ -134,6 +135,11 @@ router.post('/remove_table',  passport.authenticate('jwt', { session: false}), f
                 if (err) throw err;
             });
             Turn.remove({
+                room: req.body.id
+            }, function(err) {
+                if (err) throw err;
+            });
+            GamePart.remove({
                 room: req.body.id
             }, function(err) {
                 if (err) throw err;
@@ -585,7 +591,7 @@ router.post('/add_turn',  passport.authenticate('jwt', { session: false}), funct
             user: decoded.user.email,
             card: req.body.card,
             part_game: req.body.part_game
-        });
+        }, {upsert: true});
         newTurn.save(function(err) {
             if (err) {
                 return res.json({success: false, msg: 'Your turn did not add.', error: err });
@@ -610,6 +616,54 @@ router.get('/get_turn', passport.authenticate('jwt', { session: false}), functio
             } else {
                 res.json({success: true, turns: turns});
             }
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.get('/get_game_part', passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        GamePart.find({
+            room: req.query.room
+        }, function(err, parts) {
+            if (err) throw err;
+            if (!parts) {
+                return res.status(403).send({success: false, msg: 'Part can not receive. '});
+            } else {
+                res.json({success: true, parts: parts});
+            }
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.post('/add_game_part',  passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        console.log(req.body);
+        GamePart.findOneAndUpdate(
+            {
+            room: req.body.room,
+            part: req.body.part
+            },
+            {
+                part: req.body.part,
+                game: req.body.game,
+                room: req.body.room,
+                $push: { turns: req.body.turns },
+                ended: req.body.ended
+            },
+            { upsert: true },
+            function (err) {
+            if (err) {
+                return res.json({success: false, msg: 'Cards of user did not add.', error: err });
+            }
+            res.json({success: true, msg: 'Successful added Cards of user.'});
         });
     } else {
         return res.status(403).send({success: false, msg: 'No token provided.'});

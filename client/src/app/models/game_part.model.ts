@@ -3,7 +3,9 @@ export class GamePart {
   part: number;
   game: string;
   room: string;
-  user: string;
-  card: string;
+  turns: [{
+    user: string,
+    card: string
+  }];
   ended: boolean;
 }

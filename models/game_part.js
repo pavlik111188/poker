@@ -4,7 +4,10 @@ var GamePartSchema = new mongoose.Schema({
     part: Number,
     game: String,
     room: String,
-    user: String,
+    turns: [{
+        user: String,
+        card: String
+    }],
     ended: Boolean
 });
 

@@ -157,7 +157,6 @@ function getUserTrumps(data, trump, room) {
 function getLowestTrump(userTrumps, room) {
     var minRank = 14;
     var lowestRank = {};
-    var items_list, users_list;
     for (var i=0; i < userTrumps.length; i++) {
         if (userTrumps[i].trumps.length > 0){
             var user = userTrumps[i];

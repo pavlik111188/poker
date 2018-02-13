@@ -5,7 +5,9 @@ export class GamePart {
   room: string;
   turns: [{
     user: string,
-    card: string
+    card: string,
+    whom: string,
+    move_type: string
   }];
   ended: boolean;
 }

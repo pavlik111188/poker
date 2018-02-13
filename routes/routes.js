@@ -408,6 +408,7 @@ router.post('/add_user_to_chat',  passport.authenticate('jwt', { session: false}
     var token = getToken(req.headers);
     if (token) {
         var decoded = jwt.decode(token, config.secret);
+        console.log(req.body);
             UserInChat.findOne({
                 room: req.body.room,
                 email: decoded.user.email
@@ -419,6 +420,7 @@ router.post('/add_user_to_chat',  passport.authenticate('jwt', { session: false}
                         email: decoded.user.email,
                         chair: req.body.chair,
                         position: req.body.position,
+                        chair_number: req.body.chair_number,
                         name: req.body.name
                     });
                     newUserInChat.save(function(err) {
@@ -645,26 +647,58 @@ router.post('/add_game_part',  passport.authenticate('jwt', { session: false}), 
     var token = getToken(req.headers);
     if (token) {
         var decoded = jwt.decode(token, config.secret);
-        console.log(req.body);
-        GamePart.findOneAndUpdate(
-            {
-            room: req.body.room,
-            part: req.body.part
-            },
-            {
-                part: req.body.part,
-                game: req.body.game,
-                room: req.body.room,
-                $push: { turns: req.body.turns },
-                ended: req.body.ended
-            },
-            { upsert: true },
-            function (err) {
-            if (err) {
-                return res.json({success: false, msg: 'Cards of user did not add.', error: err });
+        var turns = req.body.turns;
+        UserInChat.find({
+            room: req.body.room
+        }, function(err, users) {
+            if (err) throw err;
+            if (!users) {
+                return res.status(403).send({success: false, msg: 'users can not receive. '});
+            } else {
+                var user;
+                for (var i = 0; i < users.length; i++) {
+                    if (users[i].email == req.body.turns.user) {
+                        if (i == users.length - 1) {
+                            user = users[0];
+                        } else {
+                            user = users[i+1];
+                        }
+                        turns['whom'] = user.email;
+                        break;
+                    }
+                }
+                GamePart.find({
+                    room: req.query.room,
+                    part: req.body.part
+                }, function(err, parts) {
+                    if (err) throw err;
+                    if (!parts) {
+                        turns['type'] = 'attack';
+                    } else {
+                        console.log('parts: ', parts);
+                    }
+                    GamePart.findOneAndUpdate(
+                        {
+                        room: req.body.room,
+                        part: req.body.part
+                        },
+                        {
+                            part: req.body.part,
+                            game: req.body.game,
+                            room: req.body.room,
+                            $push: { turns: turns },
+                            ended: req.body.ended
+                        },
+                        { upsert: true },
+                        function (err) {
+                        if (err) {
+                            return res.json({success: false, msg: 'GamePart did not add.', error: err });
+                        }
+                        res.json({success: true, msg: 'Successful added GamePart.'});
+                    });
+                });
             }
-            res.json({success: true, msg: 'Successful added Cards of user.'});
-        });
+        }).sort( { chair_number: 'asc' } );
     } else {
         return res.status(403).send({success: false, msg: 'No token provided.'});
     }

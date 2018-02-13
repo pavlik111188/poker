@@ -5,6 +5,7 @@ var UserInChatSchema = new mongoose.Schema({
     email: String,
     name: String,
     chair: String,
+    chair_number: Number,
     position: Array
 });
 

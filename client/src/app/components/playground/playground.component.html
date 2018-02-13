@@ -5,13 +5,18 @@
      [style.left.px]="left">
   <div class="go-to-home"><a [routerLink]="['/dashboard']"><span class="glyphicon glyphicon-arrow-left"></span></a></div>
   <div *ngFor="let chair of chairs; let i = index"
-       (click)="chooseChair(chair._id, [chair.top,chair.left])"
+       (click)="chooseChair(chair._id, [chair.top,chair.left], i)"
        [ngStyle]="{'top':chair.top,'left':chair.left}" class="player-container">
     <div *ngIf="!findInArray(chair._id)">Free</div>
   </div>
   <div *ngIf="users && users.length > 0">
     <div *ngFor="let user of users"
          [ngStyle]="{'top':user.position[0],'left':user.position[1]}" class="player-container">
+
+      <div *ngIf="user.email == userTurn">
+        <div *ngIf="userTurn == user_email; else elseTurn">Ваш ход</div>
+        <ng-template #elseTurn>Ходит</ng-template>
+      </div>
       {{ user.name }}
       <div *ngIf="myCards && user.email == user_email" class="cards-area player-cards">
         <div *ngFor="let card of myCards">

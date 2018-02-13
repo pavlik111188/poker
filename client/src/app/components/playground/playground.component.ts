@@ -168,9 +168,9 @@ export class PlaygroundComponent implements OnInit {
     }
   }
 
-  chooseChair(id, position) {
+  chooseChair(id, position, chair_number) {
     if (this.myChair.length < 1) {
-      this.addUserToChat(id, position);
+      this.addUserToChat(id, position, chair_number);
       this.start_game.emit(id);
     }
   }
@@ -195,8 +195,8 @@ export class PlaygroundComponent implements OnInit {
     });
   }
 
-  addUserToChat(id, position) {
-    this.chatService.addUserToChat({room: this.room, chair: id, position: position, name: this.user_name}).subscribe((res) => {
+  addUserToChat(id, position, chair_number) {
+    this.chatService.addUserToChat({room: this.room, chair: id, position: position, name: this.user_name, chair_number: chair_number}).subscribe((res) => {
       if (res['success']) {
         this.getUsersInChat(this.room);
         this.socket.emit('update-table-game', {room: this.room, action: 'choose-chair'});
@@ -450,15 +450,15 @@ export class PlaygroundComponent implements OnInit {
       });
   }
 
-  turn(card) {
-    console.log(this.userTurn);
+  turn(card, type) {
+    // attack (заход), defend (побить), abandon (принять), skip (пропускать)
     if (this.userTurn == this.user_email) {
       this.gameService.addGamePart(
         {
         part: this.gamePart,
         game: this.game,
         room: this.room,
-        turns: {card: card, user: this.user_email},
+        turns: {user: this.user_email, card: card, whom: 'fgfg', move_type: 'attack'},
         ended: false
         }).subscribe((res) => {
         if (res['success']) {

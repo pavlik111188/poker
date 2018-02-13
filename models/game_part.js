@@ -6,7 +6,11 @@ var GamePartSchema = new mongoose.Schema({
     room: String,
     turns: [{
         user: String,
-        card: String
+        card: String,
+        whom: String,
+        move_type: String/*,
+        whom: String,
+        type: String*/
     }],
     ended: Boolean
 });

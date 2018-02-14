@@ -629,7 +629,8 @@ router.get('/get_game_part', passport.authenticate('jwt', { session: false}), fu
     if (token) {
         var decoded = jwt.decode(token, config.secret);
         GamePart.find({
-            room: req.query.room
+            room: req.query.room,
+            ended: req.query.ended
         }, function(err, parts) {
             if (err) throw err;
             if (!parts) {
@@ -672,8 +673,8 @@ router.post('/add_game_part',  passport.authenticate('jwt', { session: false}), 
                     part: req.body.part
                 }, function(err, parts) {
                     if (err) throw err;
-                    if (!parts) {
-                        turns['type'] = 'attack';
+                    if (parts.length < 1) {
+                        turns['move_type'] = 'attack';
                     } else {
                         console.log('parts: ', parts);
                     }
@@ -693,8 +694,18 @@ router.post('/add_game_part',  passport.authenticate('jwt', { session: false}), 
                         function (err) {
                         if (err) {
                             return res.json({success: false, msg: 'GamePart did not add.', error: err });
+                        } else {
+                            UserCards.update({
+                                table: req.body.room,
+                                user: turns.user
+                            }, { $pull: { cards: { card: turns.card } } }, {upsert: false}, function (err) {
+                                if (err) {
+                                    return res.json({success: false, msg: 'Cards of user did not add.', error: err });
+                                } else {
+                                    res.json({success: true, next_user: turns.whom, move_type: turns.move_type});
+                                }
+                            });
                         }
-                        res.json({success: true, msg: 'Successful added GamePart.'});
                     });
                 });
             }

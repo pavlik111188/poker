@@ -50,6 +50,7 @@ export class PlaygroundComponent implements OnInit {
   userTurn: string;
   gamePart: number = 1;
   showCardsOnTable: boolean = false;
+  turns: any;
 
   constructor(
     private chairService: ChairService,
@@ -112,6 +113,12 @@ export class PlaygroundComponent implements OnInit {
         if (data.action == 'get-lowest-trump') {
           if (!this.lowestTrumpResult)
             this.getLowestTrumpResult(data.result);
+        }
+        if (data.action == 'turn') {
+          this.getUserCards();
+          if (data.user !== this.user_email) {
+            this.getParts();
+          }
         }
       }
     });
@@ -245,6 +252,7 @@ export class PlaygroundComponent implements OnInit {
             this.startedGame = true;
             this.trump = res['game']['trump'];
             this.getCardList();
+            this.getParts();
           }
           if (this.users.length > 1 && this.tableOwner == this.user_email && !this.startedGame)
             this.userCanStart = true;
@@ -351,13 +359,14 @@ export class PlaygroundComponent implements OnInit {
           let user = this.users[j];
           this.cardService.getUserCardsCount({game: this.game, table: this.room, user: user['email']}).subscribe((res) => {
             this.users[j]['cards_count'] = res['cards_count'];
-            if (j == this.users.length - 1) {
+            /*if (j == this.users.length - 1) {
               setTimeout(() => {
                 this.getLowestTrump();
               }, 1500);
-            }
+            }*/
           });
         }
+        this.getParts();
         if (!this.pack) {
           this.getPack();
         }
@@ -429,9 +438,13 @@ export class PlaygroundComponent implements OnInit {
 
   getParts() {
     this.getAllCards();
-    this.gameService.getGamePart({room: this.room}).subscribe((res) => {
+    this.gameService.getGamePart({room: this.room, ended: false}).subscribe((res) => {
       if (res['success'] && res['parts'].length > 0) {
-        console.log(res);
+        let part = res['parts'][0];
+        let lastElId = part.turns.length - 1;
+        this.turns = part.turns;
+        console.log(this.turns[lastElId]);
+        this.userTurn = this.turns[lastElId].whom;
       } else {
         this.getLowestTrump();
       }
@@ -458,15 +471,17 @@ export class PlaygroundComponent implements OnInit {
         part: this.gamePart,
         game: this.game,
         room: this.room,
-        turns: {user: this.user_email, card: card, whom: 'fgfg', move_type: 'attack'},
+        turns: {user: this.user_email, card: card, whom: '', move_type: type},
         ended: false
         }).subscribe((res) => {
         if (res['success']) {
-          this.userTurn = '';
+          this.userTurn = res['next_user'];
           this.showCardsOnTable = true;
-          console.log(this.myCards.indexOf(card));
+          this.socket.emit('update-table-game', {room: this.room, action: 'turn', user: this.user_email, whom: this.userTurn, move_type: res['move_type']});
+          // this.getUserCards();
+          // console.log(res);
         }
-        console.log(res);
+
       });
     }
   }

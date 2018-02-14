@@ -8,9 +8,7 @@ var GamePartSchema = new mongoose.Schema({
         user: String,
         card: String,
         whom: String,
-        move_type: String/*,
-        whom: String,
-        type: String*/
+        move_type: String
     }],
     ended: Boolean
 });

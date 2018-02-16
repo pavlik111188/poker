@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {GetUserName} from "./get-user-name.pipe";
+import { GetUserName } from './get-user-name.pipe';
+import { GetCardRank } from './get-card-rank.pipe';
 
 
 @NgModule({
@@ -8,13 +9,16 @@ import {GetUserName} from "./get-user-name.pipe";
     CommonModule
   ],
   declarations: [
-    GetUserName
+    GetUserName,
+    GetCardRank
   ],
   providers: [
-    GetUserName
+    GetUserName,
+    GetCardRank
   ],
   exports: [
-    GetUserName
+    GetUserName,
+    GetCardRank
   ]
 })
 export class PipesModule { }

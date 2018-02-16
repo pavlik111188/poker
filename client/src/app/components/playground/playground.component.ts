@@ -51,6 +51,10 @@ export class PlaygroundComponent implements OnInit {
   gamePart: number = 1;
   showCardsOnTable: boolean = false;
   turns: any;
+  moveType: string;
+  lastTurn: any;
+  tempAttackCard: any;
+  tempDeffendCard: any;
 
   constructor(
     private chairService: ChairService,
@@ -64,7 +68,6 @@ export class PlaygroundComponent implements OnInit {
   }
 
   ngOnInit() {
-    // this.encode(atob('W3siX2lkIjoiNWE1Mjg1MWFmMjE1NjAzNjdkNmIzNDIxIiwibmFtZSI6IjZzIiwicmFuayI6NSwic3VpdCI6InNwYWRlIn0seyJfaWQiOiI1YTUyODhlZWYyMTU2MDM2N2Q2YjM1YTciLCJuYW1lIjoiNmgiLCJyYW5rIjo1LCJzdWl0IjoiaGVhcnQifSx7Il9pZCI6IjVhNTI4OWMzZjIxNTYwMzY3ZDZiMzYwYiIsIm5hbWUiOiI2YyIsInJhbmsiOjUsInN1aXQiOiJjbHViIn0seyJfaWQiOiI1YTUyODUyZGYyMTU2MDM2N2Q2YjM0MjciLCJuYW1lIjoiN3MiLCJyYW5rIjo2LCJzdWl0Ijoic3BhZGUifSx7Il9pZCI6IjVhNTI4N2I3ZjIxNTYwMzY3ZDZiMzUyOCIsIm5hbWUiOiI3ZCIsInJhbmsiOjYsInN1aXQiOiJkaWFtb25kIn0seyJfaWQiOiI1YTUyODhmY2YyMTU2MDM2N2Q2YjM1YjAiLCJuYW1lIjoiN2giLCJyYW5rIjo2LCJzdWl0IjoiaGVhcnQifSx7Il9pZCI6IjVhNTI4NTU2ZjIxNTYwMzY3ZDZiMzQzYSIsIm5hbWUiOiI4cyIsInJhbmsiOjcsInN1aXQiOiJzcGFkZSJ9LHsiX2lkIjoiNWE1Mjg3YzNmMjE1NjAzNjdkNmIzNTJjIiwibmFtZSI6IjhkIiwicmFuayI6Nywic3VpdCI6ImRpYW1vbmQifSx7Il9pZCI6IjVhNTI4OTBhZjIxNTYwMzY3ZDZiMzViNCIsIm5hbWUiOiI4aCIsInJhbmsiOjcsInN1aXQiOiJoZWFydCJ9LHsiX2lkIjoiNWE1Mjg5ZTFmMjE1NjAzNjdkNmIzNjE3IiwibmFtZSI6IjhjIiwicmFuayI6Nywic3VpdCI6ImNsdWIifSx7Il9pZCI6IjVhNTI4NTc0ZjIxNTYwMzY3ZDZiMzQ0NCIsIm5hbWUiOiI5cyIsInJhbmsiOjgsInN1aXQiOiJzcGFkZSJ9LHsiX2lkIjoiNWE1Mjg5ZjNmMjE1NjAzNjdkNmIzNjIwIiwibmFtZSI6IjljIiwicmFuayI6OCwic3VpdCI6ImNsdWIifSx7Il9pZCI6IjVhNTI4NWJmZjIxNTYwMzY3ZDZiMzQ2MCIsIm5hbWUiOiIxMHMiLCJyYW5rIjo5LCJzdWl0Ijoic3BhZGUifSx7Il9pZCI6IjVhNTI4YTA1ZjIxNTYwMzY3ZDZiMzYyYSIsIm5hbWUiOiIxMGMiLCJyYW5rIjo5LCJzdWl0IjoiY2x1YiJ9LHsiX2lkIjoiNWE1Mjg4MWRmMjE1NjAzNjdkNmIzNTUzIiwibmFtZSI6ImpkIiwicmFuayI6MTAsInN1aXQiOiJkaWFtb25kIn0seyJfaWQiOiI1YTUyODkzYmYyMTU2MDM2N2Q2YjM1Y2QiLCJuYW1lIjoiamgiLCJyYW5rIjoxMCwic3VpdCI6ImhlYXJ0In0seyJfaWQiOiI1YTUyOGExYmYyMTU2MDM2N2Q2YjM2MzAiLCJuYW1lIjoiamMiLCJyYW5rIjoxMCwic3VpdCI6ImNsdWIifSx7Il9pZCI6IjVhNTI4ODMyZjIxNTYwMzY3ZDZiMzU1YiIsIm5hbWUiOiJxZCIsInJhbmsiOjExLCJzdWl0IjoiZGlhbW9uZCJ9LHsiX2lkIjoiNWE1Mjg5NGVmMjE1NjAzNjdkNmIzNWQ1IiwibmFtZSI6InFoIiwicmFuayI6MTEsInN1aXQiOiJoZWFydCJ9LHsiX2lkIjoiNWE1Mjg2OGFmMjE1NjAzNjdkNmIzNGFlIiwibmFtZSI6ImtzIiwicmFuayI6MTIsInN1aXQiOiJzcGFkZSJ9LHsiX2lkIjoiNWE1Mjg4NDRmMjE1NjAzNjdkNmIzNTYzIiwibmFtZSI6ImtkIiwicmFuayI6MTIsInN1aXQiOiJkaWFtb25kIn0seyJfaWQiOiI1YTUyODk2NWYyMTU2MDM2N2Q2YjM1ZGYiLCJuYW1lIjoia2giLCJyYW5rIjoxMiwic3VpdCI6ImhlYXJ0In0seyJfaWQiOiI1YTUyODk3NWYyMTU2MDM2N2Q2YjM1ZTgiLCJuYW1lIjoiYWgiLCJyYW5rIjoxMywic3VpdCI6ImhlYXJ0In0seyJfaWQiOiI1YTUyOGE0OWYyMTU2MDM2N2Q2YjM2NDciLCJuYW1lIjoiYWMiLCJyYW5rIjoxMywic3VpdCI6ImNsdWIifV0='));
     ResizeProvider.resizeAction.subscribe((isLandscape: boolean)=>{
       this.resizeActionHandler(isLandscape);
     });
@@ -104,6 +107,7 @@ export class PlaygroundComponent implements OnInit {
 
     this.socket.on('update-table-game', (data) => {
       if (data.room == this.room) {
+        console.log(data);
         if (data.action == 'choose-chair') {
           // this.canStart();
         }
@@ -118,6 +122,7 @@ export class PlaygroundComponent implements OnInit {
           this.getUserCards();
           if (data.user !== this.user_email) {
             this.getParts();
+            this.userTurn = data.whom;
           }
         }
       }
@@ -443,8 +448,10 @@ export class PlaygroundComponent implements OnInit {
         let part = res['parts'][0];
         let lastElId = part.turns.length - 1;
         this.turns = part.turns;
-        console.log(this.turns[lastElId]);
         this.userTurn = this.turns[lastElId].whom;
+        this.moveType = (this.turns[lastElId].move_type == 'attack') ? 'defend' : 'attack';
+        this.lastTurn = this.turns[lastElId];
+        console.log(this.lastTurn);
       } else {
         this.getLowestTrump();
       }
@@ -466,24 +473,42 @@ export class PlaygroundComponent implements OnInit {
   turn(card, type) {
     // attack (заход), defend (побить), abandon (принять), skip (пропускать)
     if (this.userTurn == this.user_email) {
-      this.gameService.addGamePart(
-        {
-        part: this.gamePart,
-        game: this.game,
-        room: this.room,
-        turns: {user: this.user_email, card: card, whom: '', move_type: type},
-        ended: false
-        }).subscribe((res) => {
-        if (res['success']) {
-          this.userTurn = res['next_user'];
-          this.showCardsOnTable = true;
-          this.socket.emit('update-table-game', {room: this.room, action: 'turn', user: this.user_email, whom: this.userTurn, move_type: res['move_type']});
-          // this.getUserCards();
-          // console.log(res);
-        }
+      if (this.moveType == 'defend') {
+        this.compareCards(this.lastTurn.card, card);
 
-      });
+        // let attackRank = new this.getCardRank;
+        /*this.gameService.addGamePart(
+          {
+            part: this.gamePart,
+            game: this.game,
+            room: this.room,
+            turns: {user: this.user_email, card: card, whom: '', move_type: type},
+            ended: false
+          }).subscribe((res) => {
+          if (res['success']) {
+            this.userTurn = res['next_user'];
+            this.showCardsOnTable = true;
+            this.socket.emit('update-table-game', {room: this.room, action: 'turn', user: this.user_email, whom: this.userTurn, move_type: res['move_type']});
+            this.getUserCards();
+            this.getParts();
+          }
+        });*/
+      }
     }
+  }
+
+  compareCards(attack, deffend) {
+    let at = this.getCardInfo(attack)[0];
+    let def = this.getCardInfo(deffend)[0];
+    if ((at.suit == def.suit) && (at.rank < def.rank)) {
+      console.log(at, def);
+    }
+    // if ()
+    // name: "6h", rank: 5, suit: "heart"
+  }
+
+  getCardInfo(card) {
+    return this.allCards.filter(x => x.name === card);
   }
 
 }

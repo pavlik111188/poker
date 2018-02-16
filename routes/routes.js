@@ -670,7 +670,8 @@ router.post('/add_game_part',  passport.authenticate('jwt', { session: false}), 
                 }
                 GamePart.find({
                     room: req.query.room,
-                    part: req.body.part
+                    part: req.body.part,
+                    ended: req.body.ended
                 }, function(err, parts) {
                     if (err) throw err;
                     if (parts.length < 1) {
@@ -680,8 +681,9 @@ router.post('/add_game_part',  passport.authenticate('jwt', { session: false}), 
                     }
                     GamePart.findOneAndUpdate(
                         {
-                        room: req.body.room,
-                        part: req.body.part
+                            room: req.body.room,
+                            part: req.body.part,
+                            ended: req.body.ended
                         },
                         {
                             part: req.body.part,
@@ -710,6 +712,25 @@ router.post('/add_game_part',  passport.authenticate('jwt', { session: false}), 
                 });
             }
         }).sort( { chair_number: 'asc' } );
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
+router.get('/get_card_info', passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        Card.findOne({
+            name : req.query.card
+        }, function(err, card) {
+            if (err) throw err;
+            if (!card) {
+                return res.status(403).send({success: false, msg: 'Card can not receive. '});
+            } else {
+                res.json({success: true, card: card});
+            }
+        });
     } else {
         return res.status(403).send({success: false, msg: 'No token provided.'});
     }

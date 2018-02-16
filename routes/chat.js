@@ -61,6 +61,9 @@ io.on('connection', function (socket) {
             getUsersCards(data.room, data.trump);
             // io.emit('update-table-game', {room: data.room, result: result});
         }
+        if (data.action == 'turn') {
+            io.emit('update-table-game', data);
+        }
     });
 });
 

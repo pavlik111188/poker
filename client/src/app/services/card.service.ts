@@ -23,6 +23,7 @@ export class CardService {
     private getPackUrl = 'get_pack';
     private addTurnUrl = 'add_turn';
     private getTurnUrl = 'get_turn';
+    private getCardInfoUrl = 'get_card_info';
 
     constructor(
         private http: HttpClient,
@@ -87,6 +88,13 @@ export class CardService {
       const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
       const url = `${this.domain}${this.getTurnUrl}`;
       return this.http.get<Turn>(url, {headers: headers, params: data})
+        .map((response) => response);
+    }
+
+    getCardInfo(card) {
+      const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
+      const url = `${this.domain}${this.getCardInfoUrl}`;
+      return this.http.get<Card>(url, {headers: headers, params: {card: card}})
         .map((response) => response);
     }
 

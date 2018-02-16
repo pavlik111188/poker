@@ -118,6 +118,155 @@
 .trump-suit {
   position: absolute;
   top: 45px;
+  width: 70px;
+  height: 70px;
+}
+
+.turns {
+  position: relative;
+  left: 200px;
+  width: 260px;
+  height: 130px;
+  top: 93px;
+}
+
+.turns > div {
+  width: 36px;
+  position: absolute;
+}
+
+.turns > div > img {
+  height: 50px;
+}
+
+.turns > div:nth-child(1) {
+  transform: rotate(-10deg);
+}
+
+.turns > div:nth-child(2) {
+  transform: rotate(15deg);
+}
+
+.turns > div:nth-child(3) {
+  transform: rotate(15deg);
+  left: 0;
+  top: 60px;
+}
+
+.turns > div:nth-child(4) {
+  transform: rotate(-10deg);
+  left: 0;
+  top: 60px;
+}
+
+.turns > div:nth-child(5) {
+  transform: rotate(-10deg);
+  left: 50px;
+}
+
+.turns > div:nth-child(6) {
+  transform: rotate(15deg);
+  left: 50px;
+}
+
+.turns > div:nth-child(7) {
+  transform: rotate(15deg);
+  left: 50px;
+  top: 60px;
+}
+
+.turns > div:nth-child(8) {
+  transform: rotate(-10deg);
+  left: 50px;
+  top: 60px;
+}
+
+.turns > div:nth-child(9) {
+  transform: rotate(-10deg);
+  left: 100px;
+}
+
+.turns > div:nth-child(10) {
+  transform: rotate(15deg);
+  left: 100px;
+}
+
+.turns > div:nth-child(11) {
+  transform: rotate(15deg);
+  left: 100px;
+  top: 60px;
+}
+
+.turns > div:nth-child(12) {
+  transform: rotate(-10deg);
+  left: 100px;
+  top: 60px;
+}
+
+.turns > div:nth-child(13) {
+  transform: rotate(15deg);
+  left: 150px;
+}
+
+.turns > div:nth-child(14) {
+  transform: rotate(-10deg);
+  left: 150px;
+}
+
+.turns > div:nth-child(15) {
+  transform: rotate(-10deg);
+  left: 150px;
+  top: 60px;
+}
+
+.turns > div:nth-child(16) {
+  transform: rotate(15deg);
+  left: 150px;
+  top: 60px;
+}
+
+.turns > div:nth-child(17) {
+  transform: rotate(15deg);
+  left: 200px;
+}
+
+.turns > div:nth-child(18) {
+  transform: rotate(-10deg);
+  left: 200px;
+}
+
+.turns > div:nth-child(19) {
+  transform: rotate(-10deg);
+  left: 200px;
+  top: 60px;
+}
+
+.turns > div:nth-child(20) {
+  transform: rotate(15deg);
+  left: 200px;
+  top: 60px;
+}
+
+.turns > div:nth-child(21) {
+  transform: rotate(15deg);
+  left: 250px;
+}
+
+.turns > div:nth-child(22) {
+  transform: rotate(-10deg);
+  left: 250px;
+}
+
+.turns > div:nth-child(23) {
+  transform: rotate(15deg);
+  left: 250px;
+  top: 60px;
+}
+
+.turns > div:nth-child(24) {
+  transform: rotate(-10deg);
+  left: 250px;
+  top: 60px;
 }
 
 @media (min-width: 768px) {

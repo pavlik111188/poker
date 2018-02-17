@@ -636,7 +636,59 @@ router.get('/get_game_part', passport.authenticate('jwt', { session: false}), fu
             if (!parts) {
                 return res.status(403).send({success: false, msg: 'Part can not receive. '});
             } else {
-                res.json({success: true, parts: parts});
+                if (parts.length < 1)
+                    return res.json({success: false, parts: parts});
+                var turns = parts[0].turns;
+                var lastTurn = turns[turns.length-1];
+                var turnCards = [];
+                var result;
+                if (lastTurn['move_type'] == 'attack') {
+                    res.json({success: true, parts: parts});
+                } else {
+                    for (var c = 0; c < turns.length; c++) {
+                        turnCards.push(turns[c]['card'][0]);
+                    }
+                    UserCards.findOne({
+                        table: req.query.room,
+                        user: turns[0]['user']
+                    }, function(err, cards) {
+                        for (var c = 0; c < turnCards.length; c++) {
+                            result = cards.cards.filter(x => x.card[0] === turnCards[c]);
+                            if (result.length > 0)
+                                break;
+                        }
+                        if (result.length > 0) {
+                            parts[0].turns[turns.length-1]['whom'] = turns[0]['user'];
+                            res.json({success: true, parts: parts});
+                        } else {
+                            UserInChat.find({
+                                room: req.query.room,
+                                email: { $ne: lastTurn['user'] }
+                            }, function(err, users) {
+                                for (var i = 0; i < users.length; i++) {
+                                    if (users[i]['email'] != turns[0]['user']) {
+                                        UserCards.findOne({
+                                            table: req.query.room,
+                                            user: users[i]['email']
+                                        }, function(err, cards) {
+                                            for (var c = 0; c < turnCards.length; c++) {
+                                                result = cards.cards.filter(x => x.card[0] === turnCards[c]);
+                                                if (result.length > 0)
+                                                    break;
+                                            }
+                                            if (result.length > 0) {
+                                                parts[0].turns[turns.length-1]['whom'] = turns[0]['user'];
+                                                res.json({success: true, parts: parts});
+                                            } else {
+                                                console.log('no cards');
+                                            }
+                                        });
+                                    }
+                                }
+                            }).sort( { chair_number: 'asc' } );
+                        }
+                    });
+                }
             }
         });
     } else {
@@ -657,45 +709,39 @@ router.post('/add_game_part',  passport.authenticate('jwt', { session: false}), 
                 return res.status(403).send({success: false, msg: 'users can not receive. '});
             } else {
                 var user;
-                for (var i = 0; i < users.length; i++) {
-                    if (users[i].email == req.body.turns.user) {
-                        if (i == users.length - 1) {
-                            user = users[0];
-                        } else {
-                            user = users[i+1];
+                if (req.body.turns.move_type == 'attack') {
+                    for (var i = 0; i < users.length; i++) {
+                        if (users[i].email == req.body.turns.user) {
+                            if (i == users.length - 1) {
+                                user = users[0];
+                            } else {
+                                user = users[i+1];
+                            }
+                            turns['whom'] = user.email;
+                            break;
                         }
-                        turns['whom'] = user.email;
-                        break;
                     }
                 }
-                GamePart.find({
-                    room: req.query.room,
-                    part: req.body.part,
-                    ended: req.body.ended
-                }, function(err, parts) {
-                    if (err) throw err;
-                    if (parts.length < 1) {
-                        turns['move_type'] = 'attack';
+                GamePart.findOneAndUpdate(
+                    {
+                        room: req.body.room,
+                        part: req.body.part,
+                        ended: req.body.ended
+                    },
+                    {
+                        part: req.body.part,
+                        game: req.body.game,
+                        room: req.body.room,
+                        $push: { turns: turns },
+                        ended: req.body.ended
+                    },
+                    { upsert: true },
+                    function (err) {
+                    if (err) {
+                        return res.json({success: false, msg: 'GamePart did not add.', error: err });
                     } else {
-                        console.log('parts: ', parts);
-                    }
-                    GamePart.findOneAndUpdate(
-                        {
-                            room: req.body.room,
-                            part: req.body.part,
-                            ended: req.body.ended
-                        },
-                        {
-                            part: req.body.part,
-                            game: req.body.game,
-                            room: req.body.room,
-                            $push: { turns: turns },
-                            ended: req.body.ended
-                        },
-                        { upsert: true },
-                        function (err) {
-                        if (err) {
-                            return res.json({success: false, msg: 'GamePart did not add.', error: err });
+                        if (turns['move_type'] == 'skip') {
+                            res.json({success: true, next_user: turns.whom, move_type: 'defend'});
                         } else {
                             UserCards.update({
                                 table: req.body.room,
@@ -708,7 +754,7 @@ router.post('/add_game_part',  passport.authenticate('jwt', { session: false}), 
                                 }
                             });
                         }
-                    });
+                    }
                 });
             }
         }).sort( { chair_number: 'asc' } );

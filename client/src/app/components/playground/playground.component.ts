@@ -53,8 +53,7 @@ export class PlaygroundComponent implements OnInit {
   turns: any;
   moveType: string;
   lastTurn: any;
-  tempAttackCard: any;
-  tempDeffendCard: any;
+  showSkip: boolean = false;
 
   constructor(
     private chairService: ChairService,
@@ -416,6 +415,7 @@ export class PlaygroundComponent implements OnInit {
   }
 
   getLowestTrump() {
+    this.moveType = 'attack';
     let trump = this.trump.charAt(0);
     this.socket.emit('update-table-game', {room: this.room, action: 'get-lowest-trump', user: this.user_email, trump: trump});
   }
@@ -451,7 +451,12 @@ export class PlaygroundComponent implements OnInit {
         this.userTurn = this.turns[lastElId].whom;
         this.moveType = (this.turns[lastElId].move_type == 'attack') ? 'defend' : 'attack';
         this.lastTurn = this.turns[lastElId];
-        console.log(this.lastTurn);
+        if (this.turns[lastElId].move_type == 'defend') {
+          // console.log(this.lastTurn);
+        }
+        if (this.userTurn == this.user_email && this.turns && this.moveType == 'attack') {
+          this.showSkip = true;
+        }
       } else {
         this.getLowestTrump();
       }
@@ -473,26 +478,24 @@ export class PlaygroundComponent implements OnInit {
   turn(card, type) {
     // attack (заход), defend (побить), abandon (принять), skip (пропускать)
     if (this.userTurn == this.user_email) {
-      if (this.moveType == 'defend') {
-        this.compareCards(this.lastTurn.card, card);
-
-        // let attackRank = new this.getCardRank;
-        /*this.gameService.addGamePart(
-          {
-            part: this.gamePart,
-            game: this.game,
-            room: this.room,
-            turns: {user: this.user_email, card: card, whom: '', move_type: type},
-            ended: false
-          }).subscribe((res) => {
-          if (res['success']) {
-            this.userTurn = res['next_user'];
-            this.showCardsOnTable = true;
-            this.socket.emit('update-table-game', {room: this.room, action: 'turn', user: this.user_email, whom: this.userTurn, move_type: res['move_type']});
-            this.getUserCards();
-            this.getParts();
+      if (!type) {
+        if (this.moveType == 'defend') {
+          if (this.compareCards(this.lastTurn.card, card)) {
+            this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: card, whom: '', move_type: this.moveType}, false);
           }
-        });*/
+        }
+        if (this.moveType == 'attack') {
+          if (this.turns) {
+            this.canAttack(card);
+          } else {
+            this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: card, whom: '', move_type: this.moveType}, false);
+          }
+        }
+      } else {
+        if (type == 'skip') {
+          this.showSkip = false;
+          this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: '', whom: '', move_type: type}, false);
+        }
       }
     }
   }
@@ -502,13 +505,43 @@ export class PlaygroundComponent implements OnInit {
     let def = this.getCardInfo(deffend)[0];
     if ((at.suit == def.suit) && (at.rank < def.rank)) {
       console.log(at, def);
+      return true;
+    } else {
+      if (def.suit == this.trump) {
+        console.log(at, def);
+        return true;
+      } else {
+        console.log(false);
+        return false;
+      }
     }
-    // if ()
-    // name: "6h", rank: 5, suit: "heart"
   }
 
   getCardInfo(card) {
     return this.allCards.filter(x => x.name === card);
+  }
+
+  addGamePart(part, game, room, turns, ended) {
+    this.gameService.addGamePart(
+      {
+        part: part,
+        game: game,
+        room: room,
+        turns: turns,
+        ended: ended
+      }).subscribe((res) => {
+      if (res['success']) {
+        this.userTurn = res['next_user'];
+        this.showCardsOnTable = true;
+        this.socket.emit('update-table-game', {room: room, action: 'turn', user: this.user_email, whom: this.userTurn, move_type: res['move_type']});
+        this.getUserCards();
+        this.getParts();
+      }
+    });
+  }
+
+  canAttack(card) {
+    console.log(card);
   }
 
 }

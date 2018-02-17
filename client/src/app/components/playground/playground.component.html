@@ -39,7 +39,7 @@
     </div>
     <div *ngIf="turns" class="turns">
       <div *ngFor="let turn of turns">
-        <img src="assets/img/cards/{{ turn.card | uppercase }}.svg" />
+        <img *ngIf="turn.card.length > 0" src="assets/img/cards/{{ turn.card | uppercase }}.svg" />
       </div>
     </div>
   </div>
@@ -47,5 +47,8 @@
         <span *ngFor="let card of getArray(pack_count)">
           <img src="assets/img/cards/{{ card }}.svg" />
         </span>
+  </div>
+  <div *ngIf="showSkip" class="skip-area">
+    <button (click)="turn('','skip')" class="btn btn-info">Пропустить</button>
   </div>
 </div>

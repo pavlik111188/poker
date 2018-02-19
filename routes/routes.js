@@ -7,6 +7,8 @@ const router = express.Router();
 const passport	= require('passport');
 const jwt       = require('jwt-simple');
 const moment    = require('moment');
+const uniqueArrayPlugin = require('mongoose-unique-array');
+const async = require('async');
 
 const config = require('../config/database'); // get db config file
 const User = require('../models/user'); // get the mongoose model
@@ -23,6 +25,7 @@ const UserCards = require('../models/user_cards'); // get the mongoose model
 const Pack = require('../models/pack'); // get the mongoose model
 const Turn = require('../models/turn'); // get the mongoose model
 const GamePart = require('../models/game_part'); // get the mongoose model
+const Trash = require('../models/trash'); // get the mongoose model
 
 // test
 router.get('/test', function ( req, res, next) {
@@ -140,6 +143,11 @@ router.post('/remove_table',  passport.authenticate('jwt', { session: false}), f
                 if (err) throw err;
             });
             GamePart.remove({
+                room: req.body.id
+            }, function(err) {
+                if (err) throw err;
+            });
+            Trash.remove({
                 room: req.body.id
             }, function(err) {
                 if (err) throw err;
@@ -642,12 +650,54 @@ router.get('/get_game_part', passport.authenticate('jwt', { session: false}), fu
                 var lastTurn = turns[turns.length-1];
                 var turnCards = [];
                 var result;
+                var defendUser;
+                var trashCards = [];
+                for (var c = 0; c < turns.length; c++) {
+                    if (turns[c]['card'][0])
+                        turnCards.push(turns[c]['card'][0]);
+                    if (turns[c]['move_type'] == 'defend')
+                        defendUser = turns[c]['user'];
+                    if (turns[c]['card'] != '')
+                        trashCards.push({'card' : turns[c]['card']});
+                }
+                if (lastTurn['move_type'] == 'skip') {
+                    UserInChat.find({
+                        room: req.query.room,
+                        email: { $ne: lastTurn['user'] }
+                    }, function(err, users) {
+                        for (var i = 0; i < users.length; i++) {
+                            if (users[i]['email'] != turns[0]['user'] && users[i]['email'] != defendUser) {
+                                UserCards.findOne({
+                                    table: req.query.room,
+                                    user: users[i]['email']
+                                }, function(err, cards) {
+                                    for (var c = 0; c < turnCards.length; c++) {
+                                        result = cards.cards.filter(x => x.card[0] === turnCards[c]);
+                                        if (result.length > 0)
+                                            break;
+                                    }
+                                    if (result.length > 0) {
+                                        parts[0].turns[turns.length-1]['whom'] = turns[0]['user'];
+                                        res.json({success: true, parts: parts});
+                                    } else {
+                                        async.eachSeries(trashCards, function updateObject (obj, done) {
+                                            // Model.update(condition, doc, callback)
+                                            Trash.findOneAndUpdate({ room: req.query.room }, { $addToSet : { cards: obj.card }}, { upsert: true }, done);
+                                        }, function allDone (error) {
+                                            distributionCards(req.query.room);
+                                            updateGamePart(req.query.room, req.query.ended, true);
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    });
+                    res.json({success: true, parts: parts});
+                }
                 if (lastTurn['move_type'] == 'attack') {
                     res.json({success: true, parts: parts});
-                } else {
-                    for (var c = 0; c < turns.length; c++) {
-                        turnCards.push(turns[c]['card'][0]);
-                    }
+                }
+                if (lastTurn['move_type'] == 'defend') {
                     UserCards.findOne({
                         table: req.query.room,
                         user: turns[0]['user']
@@ -690,7 +740,7 @@ router.get('/get_game_part', passport.authenticate('jwt', { session: false}), fu
                     });
                 }
             }
-        });
+        }).sort( { part: 'asc' } );
     } else {
         return res.status(403).send({success: false, msg: 'No token provided.'});
     }
@@ -795,5 +845,98 @@ getToken = function (headers) {
         return null;
     }
 };
+
+function updateGamePart(room, ended, endGame) {
+    GamePart.findOneAndUpdate(
+        {
+            room: room,
+            ended: ended
+        },
+        {
+            ended: endGame
+        },
+        { upsert: false },
+        function (err) {
+            if (err) {
+                return {success: false, msg: 'GamePart did not add.', error: err };
+            } else {
+                return true;
+            }
+        });
+}
+
+function decode(str, room) {
+    var encTable = Buffer.from(room).toString('base64');
+    var customStr = Buffer.from('fmW(9f3%6bA1jhSINVV3ouYYYGb1=!v+MSA7yHBB').toString('base64');
+    // var decRes = atob(str.slice(encTable.length + customStr.length));
+    var decRes = Buffer.from(str.slice(encTable.length + customStr.length), 'base64').toString();
+    return decRes;
+}
+
+function encode(str, room) {
+    var encTable = Buffer.from(room).toString('base64');
+    var encCardsArray = Buffer.from(str).toString('base64');
+    var customStr = Buffer.from('fmW(9f3%6bA1jhSINVV3ouYYYGb1=!v+MSA7yHBB').toString('base64');
+    var encRes = encTable + customStr + encCardsArray;
+    return encRes;
+}
+
+function distributionCards(room) {
+    Pack.findOne({
+        room : room
+    }, function(err, pack) {
+        var packCards = decode(pack.cards, room);
+        UserInChat.find({
+            room: room
+        }, function(err, users) {
+            for (var i = 0; i < users.length; i++) {
+                UserCards.findOne({
+                    table: room,
+                    user: users[i]['email']
+                }, function(err, cards) {
+                    if (cards.cards.length < 6) {
+                        pushCards(6 - cards.cards.length, packCards, cards.user, room);
+                    }
+                });
+            }
+        });
+    });
+}
+
+function pushCards(count, packCards, user, room) {
+    var packJson = JSON.parse(packCards);
+    for (var i = 0; i < count; i++) {
+        var rand = Math.floor(Math.random() * packJson.length);
+        var newCard = packJson[rand];
+        packJson.splice(rand, 1);
+
+        UserCards.findOneAndUpdate(
+            {
+                table: room,
+                user: user
+            },
+            {
+                $push: { cards: {'card': newCard.name, 'rank': newCard.rank} }
+            },
+            { upsert: false },
+            function (err) {
+                if(!err) {
+                    Pack.findOneAndUpdate(
+                        {
+                            room: room
+                        },
+                        {
+                            cards: encode(JSON.stringify(packJson), room)
+                        },
+                        { upsert: false },
+                        function (err) {
+                            if(!err) {
+
+                            }
+                        });
+                }
+        });
+    }
+}
 
 module.exports = router;

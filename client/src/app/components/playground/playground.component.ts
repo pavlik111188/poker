@@ -106,7 +106,6 @@ export class PlaygroundComponent implements OnInit {
 
     this.socket.on('update-table-game', (data) => {
       if (data.room == this.room) {
-        console.log(data);
         if (data.action == 'choose-chair') {
           // this.canStart();
         }
@@ -444,6 +443,7 @@ export class PlaygroundComponent implements OnInit {
   getParts() {
     this.getAllCards();
     this.gameService.getGamePart({room: this.room, ended: false}).subscribe((res) => {
+      console.log(this.pack);
       if (res['success'] && res['parts'].length > 0) {
         let part = res['parts'][0];
         let lastElId = part.turns.length - 1;
@@ -457,6 +457,8 @@ export class PlaygroundComponent implements OnInit {
         if (this.userTurn == this.user_email && this.turns && this.moveType == 'attack') {
           this.showSkip = true;
         }
+      } else if (res['lastTurn']) {
+        // console.log(this.pack);
       } else {
         this.getLowestTrump();
       }

@@ -20,7 +20,7 @@
       {{ user.name }}
       <div *ngIf="myCards && user.email == user_email" class="cards-area player-cards">
         <div *ngFor="let card of myCards">
-          <img (click)="turn(card.card)" src="assets/img/cards/{{ card.card | uppercase }}.svg" />
+          <img (click)="turn(card.card, card.rank)" src="assets/img/cards/{{ card.card | uppercase }}.svg" />
         </div>
       </div>
       <div *ngIf="user.email != user_email && user.cards_count > 0" class="cards-area">
@@ -49,6 +49,9 @@
         </span>
   </div>
   <div *ngIf="showSkip" class="skip-area">
-    <button (click)="turn('','skip')" class="btn btn-info">Пропустить</button>
+    <button (click)="turn('', '', 'skip')" class="btn btn-info">Пропустить</button>
+  </div>
+  <div *ngIf="showAbandon" class="skip-area">
+    <button (click)="turn('', '', 'abandon')" class="btn btn-danger">Принять</button>
   </div>
 </div>

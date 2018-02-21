@@ -7,6 +7,7 @@ var GamePartSchema = new mongoose.Schema({
     turns: [{
         user: String,
         card: String,
+        card_rank: Number,
         whom: String,
         move_type: String
     }],

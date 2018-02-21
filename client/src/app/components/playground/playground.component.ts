@@ -1,5 +1,6 @@
 import {Component, OnInit, Input, EventEmitter, Output} from '@angular/core';
 import { UpperCasePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import {ResizeProvider} from '../../providers/resize-provider';
 import {ChairService} from '../../services/chair.service';
 import {ChatService} from '../../services/chat.service';
@@ -54,6 +55,8 @@ export class PlaygroundComponent implements OnInit {
   moveType: string;
   lastTurn: any;
   showSkip: boolean = false;
+  showAbandon: boolean = false;
+  trashCount: number;
 
   constructor(
     private chairService: ChairService,
@@ -62,7 +65,8 @@ export class PlaygroundComponent implements OnInit {
     private gameService: GameService,
     private flashMessagesService: FlashMessagesService,
     private authenticationService: AuthenticationService,
-    private chatService: ChatService) {
+    private chatService: ChatService,
+    private route: Router) {
 
   }
 
@@ -124,6 +128,12 @@ export class PlaygroundComponent implements OnInit {
           }
         }
       }
+    });
+
+    this.socket.on('remove-table', (data) => {
+      if (data.id == this.room)
+        this.route.navigate(['/dashboard']);
+
     });
 
     this.tableService.getTableInfo(this.room).subscribe((res) => {
@@ -414,9 +424,11 @@ export class PlaygroundComponent implements OnInit {
   }
 
   getLowestTrump() {
-    this.moveType = 'attack';
-    let trump = this.trump.charAt(0);
-    this.socket.emit('update-table-game', {room: this.room, action: 'get-lowest-trump', user: this.user_email, trump: trump});
+    setTimeout(() => {
+      this.moveType = 'attack';
+      let trump = this.trump.charAt(0);
+      this.socket.emit('update-table-game', {room: this.room, action: 'get-lowest-trump', user: this.user_email, trump: trump});
+    }, 2500);
   }
 
   getLowestTrumpResult(data) {
@@ -443,22 +455,34 @@ export class PlaygroundComponent implements OnInit {
   getParts() {
     this.getAllCards();
     this.gameService.getGamePart({room: this.room, ended: false}).subscribe((res) => {
-      console.log(this.pack);
-      if (res['success'] && res['parts'].length > 0) {
-        let part = res['parts'][0];
+      console.log(res);
+      if (res['success'] && res['parts']['turns']) {
+        let part = res['parts'];
         let lastElId = part.turns.length - 1;
         this.turns = part.turns;
-        this.userTurn = this.turns[lastElId].whom;
+        if (res['next_user']) {
+          this.userTurn = res['next_user'];
+        } else {
+          this.userTurn = this.turns[lastElId].whom;
+        }
         this.moveType = (this.turns[lastElId].move_type == 'attack') ? 'defend' : 'attack';
         this.lastTurn = this.turns[lastElId];
+        this.gamePart = part.part;
         if (this.turns[lastElId].move_type == 'defend') {
           // console.log(this.lastTurn);
         }
         if (this.userTurn == this.user_email && this.turns && this.moveType == 'attack') {
           this.showSkip = true;
         }
+        if (this.userTurn == this.user_email && this.turns && this.moveType == 'defend') {
+          this.showAbandon = true;
+        }
+
       } else if (res['lastTurn']) {
-        // console.log(this.pack);
+        this.gamePart = res['part'] + 1;
+        this.turns = [];
+        this.userTurn = res['lastTurn']['next_user'];
+        this.moveType = 'attack';
       } else {
         this.getLowestTrump();
       }
@@ -477,26 +501,32 @@ export class PlaygroundComponent implements OnInit {
       });
   }
 
-  turn(card, type) {
+  turn(card, card_rank, type) {
     // attack (заход), defend (побить), abandon (принять), skip (пропускать)
     if (this.userTurn == this.user_email) {
       if (!type) {
         if (this.moveType == 'defend') {
           if (this.compareCards(this.lastTurn.card, card)) {
-            this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: card, whom: '', move_type: this.moveType}, false);
+            this.showAbandon = false;
+            this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: card, card_rank: card_rank, whom: '', move_type: this.moveType}, false);
           }
         }
         if (this.moveType == 'attack') {
+          this.showSkip = false;
           if (this.turns) {
-            this.canAttack(card);
+            this.canAttack(card, card_rank);
           } else {
-            this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: card, whom: '', move_type: this.moveType}, false);
+            this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: card, card_rank: card_rank, whom: '', move_type: this.moveType}, false);
           }
         }
       } else {
         if (type == 'skip') {
           this.showSkip = false;
-          this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: '', whom: '', move_type: type}, false);
+          this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: '', card_rank: '', whom: '', move_type: type}, false);
+        }
+        if (type == 'abandon') {
+          this.showAbandon = false;
+          this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: '', card_rank: '', whom: '', move_type: type, turns: this.turns}, false);
         }
       }
     }
@@ -506,14 +536,11 @@ export class PlaygroundComponent implements OnInit {
     let at = this.getCardInfo(attack)[0];
     let def = this.getCardInfo(deffend)[0];
     if ((at.suit == def.suit) && (at.rank < def.rank)) {
-      console.log(at, def);
       return true;
     } else {
       if (def.suit == this.trump) {
-        console.log(at, def);
         return true;
       } else {
-        console.log(false);
         return false;
       }
     }
@@ -523,16 +550,18 @@ export class PlaygroundComponent implements OnInit {
     return this.allCards.filter(x => x.name === card);
   }
 
-  addGamePart(part, game, room, turns, ended) {
+  addGamePart(part, game, room, turns, ended, notFirst=false) {
     this.gameService.addGamePart(
       {
         part: part,
         game: game,
         room: room,
         turns: turns,
-        ended: ended
+        ended: ended,
+        notFirst: notFirst
       }).subscribe((res) => {
       if (res['success']) {
+
         this.userTurn = res['next_user'];
         this.showCardsOnTable = true;
         this.socket.emit('update-table-game', {room: room, action: 'turn', user: this.user_email, whom: this.userTurn, move_type: res['move_type']});
@@ -542,8 +571,12 @@ export class PlaygroundComponent implements OnInit {
     });
   }
 
-  canAttack(card) {
-    console.log(card);
+  canAttack(card, rank) {
+    let res = this.turns.filter(x => x.card_rank === rank);
+    let whom = this.turns.filter(x => x.move_type === 'defend');
+    if (res.length > 0) {
+      this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: card, card_rank: rank, whom: whom[0]['user'], move_type: this.moveType}, false, true);
+    }
   }
 
 }

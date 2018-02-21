@@ -25,6 +25,7 @@ export class DashboardComponent implements OnInit {
   currentUserEmail: string = '';
   games: any = [];
   socket = io('http://localhost:4000');
+  user_email: string = localStorage.getItem('user_email');
 
   constructor(
     private tableService: TableService,
@@ -46,11 +47,16 @@ export class DashboardComponent implements OnInit {
     // console.log(this.currentUserEmail);
     this.getGameList();
     this.socket.on('create-new-table', (data) => {
-      console.log('create-new-table');
-      // setTimeout(() => {
+      if (data.email != this.user_email) {
         this.getTableList();
         this.flashMessagesService.show(data.msg, {cssClass: data.type, timeout: 3000});
-      // }, 1500);
+      }
+    });
+    this.socket.on('remove-table', (data) => {
+      if (data.email != this.user_email) {
+        this.getTableList();
+        this.flashMessagesService.show(data.msg, {cssClass: data.type, timeout: 3000});
+      }
     });
   }
 
@@ -62,7 +68,7 @@ export class DashboardComponent implements OnInit {
         this.createForm();
         this.loading = false;
         this.flashMessagesService.show('Стол успешно добавлен', {cssClass: 'alert-success', timeout: 3000});
-        this.socket.emit('create-new-table', {msg: 'Добавден новый стол!!!', type: 'alert-success'});
+        this.socket.emit('create-new-table', {msg: 'Добавден новый стол!!!', type: 'alert-success', email: this.user_email});
       }
   	},
   	(error) => {
@@ -97,9 +103,9 @@ export class DashboardComponent implements OnInit {
   removeTable(id, email) {
     this.tableService.removeTable({id: id, email: email}).subscribe((res) => {
       if (res['success']) {
-        console.log(res['msg']);
         this.getTableList();
-        this.socket.emit('create-new-table', {msg: 'Удален стол (:', type: 'alert-danger'});
+        this.socket.emit('remove-table', {msg: 'Удален стол (:', type: 'alert-danger', id: id, email: email});
+        this.flashMessagesService.show('Удален стол (:', {cssClass: 'alert-danger', timeout: 3000});
       } else {
         console.log(res['msg']);
       }

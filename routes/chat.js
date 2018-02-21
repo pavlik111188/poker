@@ -44,6 +44,10 @@ io.on('connection', function (socket) {
         socket.broadcast.emit('create-new-table', data);
     });
 
+    socket.on('remove-table', function (data) {
+        socket.broadcast.emit('remove-table', data);
+    });
+
     socket.on('update-table-game', function (data) {
         if (data.action == 'choose-chair') {
             io.emit('update-table-game', data);

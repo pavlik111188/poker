@@ -6,6 +6,7 @@ export class GamePart {
   turns: [{
     user: string,
     card: string,
+    card_rank: number,
     whom: string,
     move_type: string
   }];

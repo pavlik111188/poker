@@ -82,7 +82,7 @@
   height: 50px;
   width: 50px;
   right: 215px;
-  top: 260px;
+  top: 210px;
 }
 
 .pack-area > span {
@@ -273,6 +273,59 @@
   position: absolute;
   bottom: 35px;
   left: 35px;
+}
+
+.trash-area {
+  position: absolute;
+  height: 50px;
+  width: 50px;
+  right: 215px;
+  top: 330px;
+}
+
+.trash-area > span {
+  position: absolute;
+}
+
+.trash-area > span > img {
+  height: 50px;
+  transform: rotate(-10deg);
+}
+
+.trash-area > span:nth-child(2n) > img {
+  transform: rotate(10deg);
+}
+
+.trash-area > span:nth-child(2n+1) > img {
+  transform: rotate(-15deg);
+}
+
+.trash-area > span:nth-child(5) > img {
+  transform: rotate(15deg);
+}
+
+.trash-area > span:nth-child(8) > img {
+  transform: rotate(-20deg);
+}
+
+.trash-area > span:nth-child(11) > img {
+  transform: rotate(20deg);
+}
+
+.trash-area > span:nth-child(16) > img {
+  transform: rotate(-30deg);
+}
+
+.trash-area > span:nth-child(20) > img {
+  transform: rotate(30deg);
+}
+
+.trash-area > span:nth-child(23) > img {
+  transform: rotate(-37deg);
+}
+
+.trash-area > span:nth-child(26) > img {
+  transform: rotate(43deg);
 }
 
 @media (min-width: 768px) {

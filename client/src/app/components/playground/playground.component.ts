@@ -477,12 +477,15 @@ export class PlaygroundComponent implements OnInit {
         if (this.userTurn == this.user_email && this.turns && this.moveType == 'defend') {
           this.showAbandon = true;
         }
-
+        this.getTrashCount();
       } else if (res['lastTurn']) {
         this.gamePart = res['part'] + 1;
         this.turns = [];
         this.userTurn = res['lastTurn']['next_user'];
         this.moveType = 'attack';
+        console.log(this.gamePart);
+        this.getTrashCount();
+
       } else {
         this.getLowestTrump();
       }
@@ -513,7 +516,7 @@ export class PlaygroundComponent implements OnInit {
         }
         if (this.moveType == 'attack') {
           this.showSkip = false;
-          if (this.turns) {
+          if (this.turns.length > 0) {
             this.canAttack(card, card_rank);
           } else {
             this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: card, card_rank: card_rank, whom: '', move_type: this.moveType}, false);
@@ -522,11 +525,11 @@ export class PlaygroundComponent implements OnInit {
       } else {
         if (type == 'skip') {
           this.showSkip = false;
-          this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: '', card_rank: '', whom: '', move_type: type}, false);
+          this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: '', card_rank: 0, whom: '', move_type: type}, false);
         }
         if (type == 'abandon') {
           this.showAbandon = false;
-          this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: '', card_rank: '', whom: '', move_type: type, turns: this.turns}, false);
+          this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: '', card_rank: 0, whom: '', move_type: type, turns: this.turns}, false);
         }
       }
     }
@@ -577,6 +580,16 @@ export class PlaygroundComponent implements OnInit {
     if (res.length > 0) {
       this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: card, card_rank: rank, whom: whom[0]['user'], move_type: this.moveType}, false, true);
     }
+  }
+
+
+  getTrashCount() {
+    this.cardService.getTrashCount({room: this.room}).subscribe((res) => {
+      if (res['cards_count'] && res['cards_count'] > 0)
+        this.trashCount = res['cards_count'];
+    }, (err) => {
+      console.log('getTrashCount: ', err);
+    });
   }
 
 }

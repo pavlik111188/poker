@@ -48,6 +48,11 @@
           <img src="assets/img/cards/{{ card }}.svg" />
         </span>
   </div>
+  <div *ngIf="startedGame && trashCount" class="trash-area">
+        <span *ngFor="let card of getArray(trashCount)">
+          <img src="assets/img/cards/{{ card }}.svg" />
+        </span>
+  </div>
   <div *ngIf="showSkip" class="skip-area">
     <button (click)="turn('', '', 'skip')" class="btn btn-info">Пропустить</button>
   </div>

@@ -8,6 +8,7 @@ import { Card } from '../models/card.model';
 import { UserCards } from '../models/user_cards.model';
 import { Pack } from '../models/pack.model';
 import {Turn} from "../models/turn.model";
+import {Trash} from "../models/trash.model";
 
 @Injectable()
 export class CardService {
@@ -24,6 +25,7 @@ export class CardService {
     private addTurnUrl = 'add_turn';
     private getTurnUrl = 'get_turn';
     private getCardInfoUrl = 'get_card_info';
+    private getTrashCountUrl = 'get_trash_count';
 
     constructor(
         private http: HttpClient,
@@ -95,6 +97,13 @@ export class CardService {
       const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
       const url = `${this.domain}${this.getCardInfoUrl}`;
       return this.http.get<Card>(url, {headers: headers, params: {card: card}})
+        .map((response) => response);
+    }
+
+    getTrashCount(data) {
+      const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
+      const url = `${this.domain}${this.getTrashCountUrl}`;
+      return this.http.get<Trash>(url, {headers: headers, params: data})
         .map((response) => response);
     }
 

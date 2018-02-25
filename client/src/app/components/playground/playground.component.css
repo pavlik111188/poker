@@ -16,10 +16,11 @@
 
 .player-container {
   position: absolute;
-  width: 95px;
-  height: 90px;
+  width: 170px;
+  height: 108px;
   cursor: pointer;
   transition: .5s;
+  font-size: 10px;
 }
 
 .board-container {
@@ -52,10 +53,10 @@
 }
 
 .cards-area > div {
-  margin-left: -30px;
+  margin-left: -28px;
   float: left;
   width: 36px;
-  height: 50px;
+  height: 80px;
   position: relative;
 }
 
@@ -64,11 +65,11 @@
 }
 
 .cards-area > div > img {
-  height: 50px;
+  height: 80px;
 }
 
 .player-cards > div > img:hover {
-  height: 60px;
+  height: 85px;
   z-index: 2;
   position: absolute;
   bottom: 0;
@@ -130,140 +131,140 @@
   top: 93px;
 }
 
-.turns > div {
+.turns > div > div {
   width: 36px;
   position: absolute;
 }
 
-.turns > div > img {
+.turns > div > div > img {
   height: 50px;
 }
 
-.turns > div:nth-child(1) {
+.turn_card_1 {
   transform: rotate(-10deg);
 }
 
-.turns > div:nth-child(2) {
+.turn_card_2 {
   transform: rotate(15deg);
 }
 
-.turns > div:nth-child(3) {
+.turn_card_3 {
   transform: rotate(15deg);
   left: 0;
   top: 60px;
 }
 
-.turns > div:nth-child(4) {
+.turn_card_4 {
   transform: rotate(-10deg);
   left: 0;
   top: 60px;
 }
 
-.turns > div:nth-child(5) {
+.turn_card_5 {
   transform: rotate(-10deg);
   left: 50px;
 }
 
-.turns > div:nth-child(6) {
+.turn_card_6 {
   transform: rotate(15deg);
   left: 50px;
 }
 
-.turns > div:nth-child(7) {
+.turn_card_7 {
   transform: rotate(15deg);
   left: 50px;
   top: 60px;
 }
 
-.turns > div:nth-child(8) {
+.turn_card_8 {
   transform: rotate(-10deg);
   left: 50px;
   top: 60px;
 }
 
-.turns > div:nth-child(9) {
+.turn_card_9 {
   transform: rotate(-10deg);
   left: 100px;
 }
 
-.turns > div:nth-child(10) {
+.turn_card_10 {
   transform: rotate(15deg);
   left: 100px;
 }
 
-.turns > div:nth-child(11) {
+.turn_card_11 {
   transform: rotate(15deg);
   left: 100px;
   top: 60px;
 }
 
-.turns > div:nth-child(12) {
+.turn_card_12 {
   transform: rotate(-10deg);
   left: 100px;
   top: 60px;
 }
 
-.turns > div:nth-child(13) {
+.turn_card_13 {
   transform: rotate(15deg);
   left: 150px;
 }
 
-.turns > div:nth-child(14) {
+.turn_card_14 {
   transform: rotate(-10deg);
   left: 150px;
 }
 
-.turns > div:nth-child(15) {
+.turn_card_15 {
   transform: rotate(-10deg);
   left: 150px;
   top: 60px;
 }
 
-.turns > div:nth-child(16) {
+.turn_card_16 {
   transform: rotate(15deg);
   left: 150px;
   top: 60px;
 }
 
-.turns > div:nth-child(17) {
+.turn_card_17 {
   transform: rotate(15deg);
   left: 200px;
 }
 
-.turns > div:nth-child(18) {
+.turn_card_18 {
   transform: rotate(-10deg);
   left: 200px;
 }
 
-.turns > div:nth-child(19) {
+.turn_card_19 {
   transform: rotate(-10deg);
   left: 200px;
   top: 60px;
 }
 
-.turns > div:nth-child(20) {
+.turn_card_20 {
   transform: rotate(15deg);
   left: 200px;
   top: 60px;
 }
 
-.turns > div:nth-child(21) {
+.turn_card_21 {
   transform: rotate(15deg);
   left: 250px;
 }
 
-.turns > div:nth-child(22) {
+.turn_card_22 {
   transform: rotate(-10deg);
   left: 250px;
 }
 
-.turns > div:nth-child(23) {
+.turn_card_23 {
   transform: rotate(15deg);
   left: 250px;
   top: 60px;
 }
 
-.turns > div:nth-child(24) {
+.turn_card_24 {
   transform: rotate(-10deg);
   left: 250px;
   top: 60px;

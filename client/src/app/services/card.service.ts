@@ -26,6 +26,7 @@ export class CardService {
     private getTurnUrl = 'get_turn';
     private getCardInfoUrl = 'get_card_info';
     private getTrashCountUrl = 'get_trash_count';
+    private pushCardsUrl = 'push_cards';
 
     constructor(
         private http: HttpClient,
@@ -105,6 +106,13 @@ export class CardService {
       const url = `${this.domain}${this.getTrashCountUrl}`;
       return this.http.get<Trash>(url, {headers: headers, params: data})
         .map((response) => response);
+    }
+
+    pushCards(data) {
+      const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
+      const url = `${this.domain}${this.pushCardsUrl}`;
+      return this.http.post(url, data, {headers: headers})
+        .map(response => response);
     }
 
 }

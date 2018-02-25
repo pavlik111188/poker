@@ -51,12 +51,13 @@ export class PlaygroundComponent implements OnInit {
   userTurn: string;
   gamePart: number = 1;
   showCardsOnTable: boolean = false;
-  turns: any;
+  turns: any = [];
   moveType: string;
   lastTurn: any;
   showSkip: boolean = false;
   showAbandon: boolean = false;
   trashCount: number;
+  turnCards: any = [];
 
   constructor(
     private chairService: ChairService,
@@ -301,7 +302,7 @@ export class PlaygroundComponent implements OnInit {
       let userCards = [];
       for (let i = 0; i < 6; i++) {
         let rand = Math.floor(Math.random() * this.cards.length);
-        userCards.push({card: this.cards[rand].name, rank: this.cards[rand].rank});
+        userCards.push({rank: this.cards[rand].rank, card: this.cards[rand].name});
         this.cards.splice(rand, 1);
       }
       this.cardService.addUserCards({
@@ -365,21 +366,17 @@ export class PlaygroundComponent implements OnInit {
       table: this.room,
       user: this.user_email
     }).subscribe((res) => {
-      if (res['success'])
-        this.myCards = res['cards'];
+      if (res['success']) {
+          this.myCards = res['cards'];
+      }
       if (this.startedGame) {
         for (let j = 0; j < this.users.length; j++ ) {
           let user = this.users[j];
           this.cardService.getUserCardsCount({game: this.game, table: this.room, user: user['email']}).subscribe((res) => {
             this.users[j]['cards_count'] = res['cards_count'];
-            /*if (j == this.users.length - 1) {
-              setTimeout(() => {
-                this.getLowestTrump();
-              }, 1500);
-            }*/
           });
         }
-        this.getParts();
+        // this.getParts();
         if (!this.pack) {
           this.getPack();
         }
@@ -455,11 +452,17 @@ export class PlaygroundComponent implements OnInit {
   getParts() {
     this.getAllCards();
     this.gameService.getGamePart({room: this.room, ended: false}).subscribe((res) => {
-      console.log(res);
       if (res['success'] && res['parts']['turns']) {
         let part = res['parts'];
         let lastElId = part.turns.length - 1;
         this.turns = part.turns;
+        let turnsRes = [];
+        for (let turn of this.turns) {
+          if (turn['move_type'] == 'defend' || turn['move_type'] == 'attack') {
+            turnsRes.push(turn);
+          }
+        }
+        this.turnCards = turnsRes;
         if (res['next_user']) {
           this.userTurn = res['next_user'];
         } else {
@@ -481,11 +484,12 @@ export class PlaygroundComponent implements OnInit {
       } else if (res['lastTurn']) {
         this.gamePart = res['part'] + 1;
         this.turns = [];
+        this.turnCards = [];
         this.userTurn = res['lastTurn']['next_user'];
         this.moveType = 'attack';
-        console.log(this.gamePart);
         this.getTrashCount();
-
+        if (this.myCards.length < 6)
+          this.pushCards();
       } else {
         this.getLowestTrump();
       }
@@ -589,6 +593,15 @@ export class PlaygroundComponent implements OnInit {
         this.trashCount = res['cards_count'];
     }, (err) => {
       console.log('getTrashCount: ', err);
+    });
+  }
+
+  pushCards() {
+    let count = this.myCards.length;
+    this.cardService.pushCards({room: this.room, count: count}).subscribe((res) => {
+      if (res['success']) {
+        this.getUserCards();
+      }
     });
   }
 

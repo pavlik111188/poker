@@ -4,7 +4,7 @@ var UserCardsSchema = new mongoose.Schema({
     game: String,
     table: String,
     user: String,
-    cards: Array
+    cards: {type: Array, unique: true}
 });
 UserCardsSchema.plugin(uniqueArrayPlugin);
 module.exports = mongoose.model('UserCards', UserCardsSchema);

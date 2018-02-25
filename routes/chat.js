@@ -209,6 +209,7 @@ function updatePack(data) {
         }
         return res;
     });*/
+    console.log('data: ', data);
     Pack.update({room: data.room},
         {
             game: data.game,

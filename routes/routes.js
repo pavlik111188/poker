@@ -769,13 +769,13 @@ router.get('/get_game_part', passport.authenticate('jwt', { session: false}), fu
                                             }, function allDone (error) {
                                                 distributionCards(req.query.room);
                                                 updateGamePart(req.query.room, req.query.ended, true);
+                                                next_user = partsRes[0].turns.filter(x => x.move_type === 'defend');
                                                 return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user[0].user}});
                                             });
                                         }
                                     });
                                 }
                             } else {
-                                console.log('else trashCards: ', trashCards);
                                 async.eachSeries(trashCards, function updateObject (obj, done) {
                                     Trash.findOneAndUpdate({ room: req.query.room }, { $addToSet : { cards: obj.card }}, { upsert: true }, done);
                                 }, function allDone (error) {
@@ -785,7 +785,6 @@ router.get('/get_game_part', passport.authenticate('jwt', { session: false}), fu
                                 });
 
                                 next_user = partsRes[0].turns.filter(x => x.move_type === 'defend');
-                                console.log('next_user: ', next_user);
                                 return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user[0].user}});
                             }
                         });
@@ -1077,6 +1076,43 @@ router.get('/get_trash_count', passport.authenticate('jwt', { session: false}), 
     }
 });
 
+router.post('/push_cards',  passport.authenticate('jwt', { session: false}), function(req, res, next) {
+    var token = getToken(req.headers);
+    if (token) {
+        var decoded = jwt.decode(token, config.secret);
+        var user = decoded.user.email;
+        var count = 6 - req.body.count;
+        var room = req.body.room;
+        Pack.findOne({
+            room : room
+        }, function(err, pack) {
+            var packJson = JSON.parse(decode(pack.cards, room));
+            var cardsArray = getArray(count);
+            if (packJson.length > 0) {
+                async.eachSeries(cardsArray, function updateObject (obj, done) {
+                    var rand = Math.floor(Math.random() * packJson.length);
+                    var newCard = packJson[rand];
+                    packJson.splice(rand, 1);
+                    var cards = {'card': newCard.name, 'rank': newCard.rank};
+                    // Model.update(condition, doc, callback)
+                    UserCards.findOneAndUpdate({table: room, user: user}, {$addToSet: { cards: cards }}, { upsert: false }, done);
+                }, function allDone (error) {
+                    Pack.findOneAndUpdate({room: room}, {cards: encode(JSON.stringify(packJson), room)}, { upsert: false },
+                        function (err) {
+                            if(!err) {
+                                res.json({success: true, msg: 'Successful added cards.'});
+                            }
+                        });
+                });
+            } else {
+                res.json({success: true, msg: 'Pack is empty.'});
+            }
+        });
+    } else {
+        return res.status(403).send({success: false, msg: 'No token provided.'});
+    }
+});
+
 //Token for user authorization
 getToken = function (headers) {
     if (headers && headers.authorization) {
@@ -1131,7 +1167,7 @@ function distributionCards(room) {
         room : room
     }, function(err, pack) {
         var packCards = decode(pack.cards, room);
-        UserInChat.find({
+        /*UserInChat.find({
             room: room
         }, function(err, users) {
             for (var i = 0; i < users.length; i++) {
@@ -1144,7 +1180,7 @@ function distributionCards(room) {
                     }
                 });
             }
-        });
+        });*/
     });
 }
 
@@ -1154,26 +1190,11 @@ function pushCards(count, packCards, user, room) {
         var rand = Math.floor(Math.random() * packJson.length);
         var newCard = packJson[rand];
         packJson.splice(rand, 1);
-
-        UserCards.findOneAndUpdate(
-            {
-                table: room,
-                user: user
-            },
-            {
-                $push: { cards: {'card': newCard.name, 'rank': newCard.rank} }
-            },
-            { upsert: false },
+        var cards = {'card': newCard.name, 'rank': newCard.rank};
+        UserCards.findOneAndUpdate({table: room, user: user}, {$addToSet: { cards: cards }}, { upsert: false },
             function (err) {
                 if(!err) {
-                    Pack.findOneAndUpdate(
-                        {
-                            room: room
-                        },
-                        {
-                            cards: encode(JSON.stringify(packJson), room)
-                        },
-                        { upsert: false },
+                    Pack.findOneAndUpdate({room: room}, {cards: encode(JSON.stringify(packJson), room)}, { upsert: false },
                         function (err) {
                             if(!err) {
 
@@ -1182,6 +1203,14 @@ function pushCards(count, packCards, user, room) {
                 }
         });
     }
+}
+
+function getArray(n) {
+    var arr = [];
+    for (var i = 0; i < n; i ++) {
+        arr.push('c');
+    }
+    return arr;
 }
 
 module.exports = router;

@@ -38,8 +38,10 @@
       <img src="assets/img/cards/{{ lowestTrumpResult.card | uppercase }}.svg" />
     </div>
     <div *ngIf="turns" class="turns">
-      <div *ngFor="let turn of turns">
-        <img *ngIf="turn.card.length > 0" src="assets/img/cards/{{ turn.card | uppercase }}.svg" />
+      <div *ngFor="let turn of turnCards; let i = index">
+        <div *ngIf="turn.card.length > 0" class="turn_card_{{i+1}}">
+          <img src="assets/img/cards/{{ turn.card | uppercase }}.svg" />
+        </div>
       </div>
     </div>
   </div>

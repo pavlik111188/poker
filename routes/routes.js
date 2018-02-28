@@ -378,8 +378,10 @@ router.get('/get_users_in_chat', passport.authenticate('jwt', { session: false})
     var token = getToken(req.headers);
     if (token) {
         var decoded = jwt.decode(token, config.secret);
+        var finished = false;
         UserInChat.find({
-            room: req.query.room
+            room: req.query.room,
+            finished: finished
         }, function(err, users) {
             if (err) throw err;
             if (!users) {
@@ -387,7 +389,7 @@ router.get('/get_users_in_chat', passport.authenticate('jwt', { session: false})
             } else {
                 res.json({success: true, users: users});
             }
-        });
+        }).sort( { chair_number: 'asc' } );
     } else {
         return res.status(403).send({success: false, msg: 'No token provided.'});
     }
@@ -416,7 +418,6 @@ router.post('/add_user_to_chat',  passport.authenticate('jwt', { session: false}
     var token = getToken(req.headers);
     if (token) {
         var decoded = jwt.decode(token, config.secret);
-        console.log(req.body);
             UserInChat.findOne({
                 room: req.body.room,
                 email: decoded.user.email
@@ -668,62 +669,126 @@ router.get('/get_game_part', passport.authenticate('jwt', { session: false}), fu
                         res.json({success: true, parts: lastPart});
                         break;
                     case "defend":
-                        if (lastPart['ended']) {
-                            next_user = lastTurn['user'];
-                            return res.json({
-                                success: false,
-                                parts: [],
-                                part: lastPart['part'],
-                                lastTurn: {type: lastTurn['move_type'], next_user: next_user}});
-                        } else {
-
-                            return UserCards.findOne({
-                                table: req.query.room,
-                                user: turns[0]['user']
-                            }, function(err, cards) {
-                                for (var c = 0; c < turnCards.length; c++) {
-                                    result = cards.cards.filter(x => x.card[0] === turnCards[c]);
-                                    if (result.length > 0)
-                                        break;
-                                }
-                                if (result.length > 0) {
-                                    // partsRes[0].turns[turns.length-1]['whom'] = turns[0]['user'];
-                                    console.log(turns[0]['user']);
-                                    return res.json({success: true, parts: partsRes[0], next_user: turns[0]['user']});
+                        UserCards.findOne({
+                            table: req.query.room,
+                            user: defendUser
+                        }, function(err, cards) {
+                            if (cards.cards.length > 0) {
+                                if (lastPart['ended']) {
+                                    next_user = lastTurn['user'];
+                                    return res.json({
+                                        success: false,
+                                        parts: [],
+                                        part: lastPart['part'],
+                                        lastTurn: {type: lastTurn['move_type'], next_user: next_user}});
                                 } else {
-                                    UserInChat.find({
-                                        room: req.query.room,
-                                        email: { $ne: lastTurn['user'] }
-                                    }, function(err, users) {
-                                        for (var i = 0; i < users.length; i++) {
-                                            if (users[i]['email'] != turns[0]['user']) {
-                                                UserCards.findOne({
-                                                    table: req.query.room,
-                                                    user: users[i]['email']
-                                                }, function(err, cards) {
-                                                    for (var c = 0; c < turnCards.length; c++) {
-                                                        result = cards.cards.filter(x => x.card[0] === turnCards[c]);
-                                                        if (result.length > 0)
-                                                            break;
-                                                    }
-                                                    if (result.length > 0) {
-                                                        partsRes[0].turns[turns.length-1]['whom'] = cards['user'];
-                                                        return res.json({success: true, parts: partsRes[0], next_user: cards['user']});
-                                                    } else {
-                                                        distributionCards(req.query.room);
-                                                        updateGamePart(req.query.room, req.query.ended, true);
-                                                    }
-                                                });
-                                            }
+                                    return UserCards.findOne({
+                                        table: req.query.room,
+                                        user: turns[0]['user']
+                                    }, function(err, cards) {
+                                        for (var c = 0; c < turnCards.length; c++) {
+                                            result = cards.cards.filter(x => x.card[0] === turnCards[c]);
+                                            if (result.length > 0)
+                                                break;
                                         }
-                                    }).sort( { chair_number: 'asc' } );
+                                        if (result.length > 0) {
+                                            // partsRes[0].turns[turns.length-1]['whom'] = turns[0]['user'];
+                                            console.log(turns[0]['user']);
+                                            return res.json({success: true, parts: partsRes[0], next_user: turns[0]['user']});
+                                        } else {
+                                            var finished = false;
+                                            UserInChat.find({
+                                                room: req.query.room,
+                                                email: { $ne: lastTurn['user'] },
+                                                finished: finished
+                                            }, function(err, users) {
+                                                for (var i = 0; i < users.length; i++) {
+                                                    if (users[i]['email'] != turns[0]['user']) {
+                                                        UserCards.findOne({
+                                                            table: req.query.room,
+                                                            user: users[i]['email']
+                                                        }, function(err, cards) {
+                                                            for (var c = 0; c < turnCards.length; c++) {
+                                                                result = cards.cards.filter(x => x.card[0] === turnCards[c]);
+                                                                if (result.length > 0)
+                                                                    break;
+                                                            }
+                                                            if (result.length > 0) {
+                                                                partsRes[0].turns[turns.length-1]['whom'] = cards['user'];
+                                                                return res.json({success: true, parts: partsRes[0], next_user: cards['user']});
+                                                            } else {
+                                                                distributionCards(req.query.room);
+                                                                updateGamePart(req.query.room, req.query.ended, true);
+                                                            }
+                                                        });
+                                                    }
+                                                }
+                                            }).sort( { chair_number: 'asc' } );
+                                        }
+                                    });
                                 }
-                            });
-                        }
+                            }
+                            else {
+                                Pack.findOne({
+                                    room: req.query.room
+                                }, function(err, pack) {
+                                    var packResult = JSON.parse(decode(pack.cards, req.query.room));
+                                    if (packResult.length < 1) {
+                                        var finished = false;
+                                        UserInChat.find({
+                                            room: req.query.room,
+                                            finished: finished
+                                        }, function(err, usersInChat) {
+                                            if (err) throw err;
+                                            var user, next_user;
+                                            for (var i = 0; i < usersInChat.length; i++) {
+                                                if (usersInChat[i].email == defendUser) {
+                                                    if (i == usersInChat.length - 1) {
+                                                        user = usersInChat[0];
+                                                    } else {
+                                                        user = usersInChat[i+1];
+                                                    }
+                                                    next_user = user.email;
+                                                    break;
+                                                }
+                                            }
+                                            console.log('req.query.room: ', req.query.room);
+                                            console.log('defendUser: ', defendUser);
+                                            // updateGamePart(req.query.room, false, true);
+                                            var finishedTrue = true;
+                                            UserInChat.findOneAndUpdate({
+                                                room: req.query.room,
+                                                user: defendUser
+                                            }, { name: 'Super User' }, { upsert: false }, function (err) {
+                                                if (err) {
+                                                    return res.json({success: false, msg: 'Can not update an user.', error: err });
+                                                } else {
+                                                    return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user}});
+                                                }
+                                            });
+                                            /*UserInChat.update({
+                                                room: req.query.room,
+                                                user: defendUser
+                                            }, { finished: finishedTrue }, {upsert: false}, function (err) {
+                                                if (err) {
+                                                    return res.json({success: false, msg: 'Can not update an user.', error: err });
+                                                } else {
+                                                    return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user}});
+                                                }
+                                            });*/
+                                        }).sort( { chair_number: 'asc' } );
+                                    } else {
+
+                                    }
+                                });
+                            }
+                        });
                         break;
                     case "abandon":
+                        var finished = false;
                         return UserInChat.find({
-                            room: req.query.room
+                            room: req.query.room,
+                            finished: finished
                         }, function(no_users, users) {
                             for (var i = 0; i < users.length; i++) {
                                 if (users[i]['email'] == lastTurn['user']) {
@@ -741,9 +806,11 @@ router.get('/get_game_part', passport.authenticate('jwt', { session: false}), fu
                         break;
                     case "skip":
                         skipUsers.push(defendUser);
+                        var finished = false;
                         UserInChat.find({
                             room: req.query.room,
-                            email: { $nin: skipUsers }
+                            email: { $nin: skipUsers },
+                            finished: finished
                         }, function(err, users) {
                             if (err)
                                 return res.status(403).send({success: false, msg: 'Users can not receive. '});
@@ -796,147 +863,6 @@ router.get('/get_game_part', passport.authenticate('jwt', { session: false}), fu
             }
 
         }).sort( { part: 'desc' } );
-        /*var userCards = UserCards.findOne({
-            table: req.query.room,
-            user: 'mark@i.ua' }).exec(function (err, cards){
-            userCards = cards;
-        });
-        userCards.then(function (res) {
-            console.log('userCards: ', res);
-        });*/
-        /*
-        GamePart.find({
-            room: req.query.room,
-            ended: req.query.ended
-        }, function(err, partsRes) {
-            if (err) throw err;
-            if (!partsRes) {
-                return res.status(403).send({success: false, msg: 'Part can not receive. '});
-            } else {
-                if (partsRes.length < 1) {
-                    return GamePart.find({
-                        room: req.query.room
-                    }, function(err, parts) {
-                        if (parts.length < 1)
-                            return res.json({success: false, parts: []});
-                        var lastPartId = parts.length-1;
-                        var lastPart = parts[lastPartId];
-                        var lastPartTurns = lastPart.turns;
-                        var lastTurnNew = lastPartTurns[lastPartTurns.length-1];
-                        var next_user;
-                        if (lastTurnNew['move_type'] == 'defend') {
-                            next_user = lastTurnNew['user'];
-                            return res.json({success: false, parts: [], part: lastPart['part'], lastTurn: {type: lastTurnNew['move_type'], next_user: next_user}});
-                        }
-                        if (lastTurnNew['move_type'] == 'abandon') {
-                            return UserInChat.find({
-                                room: req.query.room,
-                                email: { $ne: lastTurnNew['user'] }
-                            }, function(err, users) {
-                                next_user = users[0]['email'];
-                                return res.json({success: false, parts: [], part: lastPart['part'], lastTurn: {type: lastTurnNew['move_type'], next_user: next_user}});
-                            }).sort( { chair_number: 'asc' } );
-                        }
-                    }).sort( { part: 'asc' } );
-                }
-                var turns = parts[0].turns;
-                var lastTurn = turns[turns.length-1];
-                var turnCards = [];
-                var result;
-                var defendUser;
-                var trashCards = [];
-                for (var c = 0; c < turns.length; c++) {
-                    if (turns[c]['card'][0])
-                        turnCards.push(turns[c]['card'][0]);
-                    if (turns[c]['move_type'] == 'defend')
-                        defendUser = turns[c]['user'];
-                    if (turns[c]['card'] != '')
-                        trashCards.push({'card' : turns[c]['card']});
-                }
-                if (lastTurn['move_type'] == 'skip') {
-                    UserInChat.find({
-                        room: req.query.room,
-                        email: { $ne: lastTurn['user'] }
-                    }, function(err, users) {
-                        for (var i = 0; i < users.length; i++) {
-                            if (users[i]['email'] != turns[0]['user'] && users[i]['email'] != defendUser) {
-                                UserCards.findOne({
-                                    table: req.query.room,
-                                    user: users[i]['email']
-                                }, function(err, cards) {
-                                    for (var c = 0; c < turnCards.length; c++) {
-                                        result = cards.cards.filter(x => x.card[0] === turnCards[c]);
-                                        if (result.length > 0)
-                                            break;
-                                    }
-                                    if (result.length > 0) {
-                                        parts[0].turns[turns.length-1]['whom'] = turns[0]['user'];
-                                        res.json({success: true, parts: parts});
-                                    } else {
-                                        async.eachSeries(trashCards, function updateObject (obj, done) {
-                                            // Model.update(condition, doc, callback)
-                                            Trash.findOneAndUpdate({ room: req.query.room }, { $addToSet : { cards: obj.card }}, { upsert: true }, done);
-                                        }, function allDone (error) {
-                                            distributionCards(req.query.room);
-                                            updateGamePart(req.query.room, req.query.ended, true);
-                                        });
-                                    }
-                                });
-                            }
-                        }
-                    });
-                    res.json({success: true, parts: parts});
-                }
-                if (lastTurn['move_type'] == 'attack') {
-                    res.json({success: true, parts: parts});
-                }
-                if (lastTurn['move_type'] == 'defend') {
-                    UserCards.findOne({
-                        table: req.query.room,
-                        user: turns[0]['user']
-                    }, function(err, cards) {
-                        for (var c = 0; c < turnCards.length; c++) {
-                            result = cards.cards.filter(x => x.card[0] === turnCards[c]);
-                            if (result.length > 0)
-                                break;
-                        }
-                        if (result.length > 0) {
-                            parts[0].turns[turns.length-1]['whom'] = turns[0]['user'];
-                            res.json({success: true, parts: parts});
-                        } else {
-                            UserInChat.find({
-                                room: req.query.room,
-                                email: { $ne: lastTurn['user'] }
-                            }, function(err, users) {
-                                for (var i = 0; i < users.length; i++) {
-                                    if (users[i]['email'] != turns[0]['user']) {
-                                        UserCards.findOne({
-                                            table: req.query.room,
-                                            user: users[i]['email']
-                                        }, function(err, cards) {
-                                            for (var c = 0; c < turnCards.length; c++) {
-                                                result = cards.cards.filter(x => x.card[0] === turnCards[c]);
-                                                if (result.length > 0)
-                                                    break;
-                                            }
-                                            if (result.length > 0) {
-                                                parts[0].turns[turns.length-1]['whom'] = turns[0]['user'];
-                                                res.json({success: true, parts: parts});
-                                            } else {
-                                                distributionCards(req.query.room);
-                                                updateGamePart(req.query.room, req.query.ended, true);
-                                            }
-                                        });
-                                    }
-                                }
-                            }).sort( { chair_number: 'asc' } );
-                        }
-                    });
-                    res.json({success: true, parts: parts});
-                }
-
-            }
-        }).sort( { part: 'asc' } );*/
     } else {
         return res.status(403).send({success: false, msg: 'No token provided.'});
     }
@@ -951,9 +877,11 @@ router.post('/add_game_part',  passport.authenticate('jwt', { session: false}), 
         if (turns.move_type == 'abandon') {
             async.eachSeries(turns.turns, function updateObject (obj, done) {
                 // Model.update(condition, doc, callback)
-                UserCards.findOneAndUpdate(
-                    { table: req.body.room, user: turns.user},
-                    { $addToSet : { cards: {'card': obj.card, 'rank': obj.card_rank}}}, { upsert: false }, done);
+                if (turns.turns.card && turns.turns.card.length > 0) {
+                    UserCards.findOneAndUpdate(
+                        { table: req.body.room, user: turns.user},
+                        { $addToSet : { cards: {'card': obj.card, 'rank': obj.card_rank}}}, { upsert: false }, done);
+                }
             }, function allDone (error) {
                 distributionCards(req.body.room);
                 updateGamePart(req.body.room, req.body.ended, true);
@@ -972,8 +900,10 @@ router.post('/add_game_part',  passport.authenticate('jwt', { session: false}), 
                 res.json({success: true, next_user: '', move_type: turns.move_type});
             });
         } else {
+            var finished = false;
             UserInChat.find({
-                room: req.body.room
+                room: req.body.room,
+                finished: finished
             }, function(err, users) {
                 if (err) throw err;
                 if (!users) {
@@ -981,7 +911,6 @@ router.post('/add_game_part',  passport.authenticate('jwt', { session: false}), 
                 } else {
                     var user;
                     if (req.body.turns.move_type == 'attack') {
-                        console.log('req.body: ', req.body);
                         if (!req.body.notFirst) {
                             for (var i = 0; i < users.length; i++) {
                                 if (users[i].email == req.body.turns.user) {
@@ -1090,12 +1019,13 @@ router.post('/push_cards',  passport.authenticate('jwt', { session: false}), fun
             var cardsArray = getArray(count);
             if (packJson.length > 0) {
                 async.eachSeries(cardsArray, function updateObject (obj, done) {
-                    var rand = Math.floor(Math.random() * packJson.length);
-                    var newCard = packJson[rand];
-                    packJson.splice(rand, 1);
-                    var cards = {'card': newCard.name, 'rank': newCard.rank};
-                    // Model.update(condition, doc, callback)
-                    UserCards.findOneAndUpdate({table: room, user: user}, {$addToSet: { cards: cards }}, { upsert: false }, done);
+                    if (packJson.length > 0) {
+                        var rand = Math.floor(Math.random() * packJson.length);
+                        var newCard = packJson[rand];
+                        var cards = {'card': newCard['name'], 'rank': newCard['rank']};
+                        packJson.splice(rand, 1);
+                        UserCards.findOneAndUpdate({table: room, user: user}, {$addToSet: { cards: cards }}, { upsert: false }, done);
+                    }
                 }, function allDone (error) {
                     Pack.findOneAndUpdate({room: room}, {cards: encode(JSON.stringify(packJson), room)}, { upsert: false },
                         function (err) {
@@ -1212,5 +1142,7 @@ function getArray(n) {
     }
     return arr;
 }
+
+
 
 module.exports = router;

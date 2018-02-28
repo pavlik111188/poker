@@ -142,6 +142,7 @@ export class PlaygroundComponent implements OnInit {
       this.canStart();
     });
 
+    // console.log(this.testEncode("NWE5M2Q3Y2YxZjAwYTIwZmZjZmQwNjE3Zm1XKDlmMyU2YkExamhTSU5WVjNvdVlZWUdiMT0hditNU0E3eUhCQg==W3siX2lkIjoiNWE1Mjg1MWFmMjE1NjAzNjdkNmIzNDIxIiwibmFtZSI6IjZzIiwicmFuayI6NSwic3VpdCI6InNwYWRlIn0seyJfaWQiOiI1YTUyODlkMmYyMTU2MDM2N2Q2YjM2MTEiLCJuYW1lIjoiN2MiLCJyYW5rIjo2LCJzdWl0IjoiY2x1YiJ9LHsiX2lkIjoiNWE1Mjg3YzNmMjE1NjAzNjdkNmIzNTJjIiwibmFtZSI6IjhkIiwicmFuayI6Nywic3VpdCI6ImRpYW1vbmQifSx7Il9pZCI6IjVhNTI4N2QzZjIxNTYwMzY3ZDZiMzUzNSIsIm5hbWUiOiI5ZCIsInJhbmsiOjgsInN1aXQiOiJkaWFtb25kIn0seyJfaWQiOiI1YTUyODViZmYyMTU2MDM2N2Q2YjM0NjAiLCJuYW1lIjoiMTBzIiwicmFuayI6OSwic3VpdCI6InNwYWRlIn0seyJfaWQiOiI1YTUyODdlZWYyMTU2MDM2N2Q2YjM1NDIiLCJuYW1lIjoiMTBkIiwicmFuayI6OSwic3VpdCI6ImRpYW1vbmQifSx7Il9pZCI6IjVhNTI4OTI4ZjIxNTYwMzY3ZDZiMzVjNCIsIm5hbWUiOiIxMGgiLCJyYW5rIjo5LCJzdWl0IjoiaGVhcnQifSx7Il9pZCI6IjVhNTI4YTFiZjIxNTYwMzY3ZDZiMzYzMCIsIm5hbWUiOiJqYyIsInJhbmsiOjEwLCJzdWl0IjoiY2x1YiJ9LHsiX2lkIjoiNWE1Mjg2NjNmMjE1NjAzNjdkNmIzNDlkIiwibmFtZSI6InFzIiwicmFuayI6MTEsInN1aXQiOiJzcGFkZSJ9LHsiX2lkIjoiNWE1Mjg4MzJmMjE1NjAzNjdkNmIzNTViIiwibmFtZSI6InFkIiwicmFuayI6MTEsInN1aXQiOiJkaWFtb25kIn0seyJfaWQiOiI1YTUyOGEyZGYyMTU2MDM2N2Q2YjM2M2EiLCJuYW1lIjoicWMiLCJyYW5rIjoxMSwic3VpdCI6ImNsdWIifSx7Il9pZCI6IjVhNTI4NjhhZjIxNTYwMzY3ZDZiMzRhZSIsIm5hbWUiOiJrcyIsInJhbmsiOjEyLCJzdWl0Ijoic3BhZGUifSx7Il9pZCI6IjVhNTI4OTY1ZjIxNTYwMzY3ZDZiMzVkZiIsIm5hbWUiOiJraCIsInJhbmsiOjEyLCJzdWl0IjoiaGVhcnQifSx7Il9pZCI6IjVhNTI4YTNlZjIxNTYwMzY3ZDZiMzY0MSIsIm5hbWUiOiJrYyIsInJhbmsiOjEyLCJzdWl0IjoiY2x1YiJ9LHsiX2lkIjoiNWE1Mjg2OWZmMjE1NjAzNjdkNmIzNGI2IiwibmFtZSI6ImFzIiwicmFuayI6MTMsInN1aXQiOiJzcGFkZSJ9LHsiX2lkIjoiNWE1Mjg4NTFmMjE1NjAzNjdkNmIzNTZhIiwibmFtZSI6ImFkIiwicmFuayI6MTMsInN1aXQiOiJkaWFtb25kIn0seyJfaWQiOiI1YTUyODk3NWYyMTU2MDM2N2Q2YjM1ZTgiLCJuYW1lIjoiYWgiLCJyYW5rIjoxMywic3VpdCI6ImhlYXJ0In0seyJfaWQiOiI1YTUyOGE0OWYyMTU2MDM2N2Q2YjM2NDciLCJuYW1lIjoiYWMiLCJyYW5rIjoxMywic3VpdCI6ImNsdWIifV0="));
 
   }
 
@@ -343,6 +344,16 @@ export class PlaygroundComponent implements OnInit {
     this.pack_count = this.pack.length;
   }
 
+  testEncode(str) {
+    let encTable = btoa(this.room);
+    let customStr = btoa('fmW(9f3%6bA1jhSINVV3ouYYYGb1=!v+MSA7yHBB');
+    let encCardsArray = btoa('[{"_id":"5a528851f21560367d6b356a","name":"ad","rank":13,"suit":"diamond"},{"_id":"5a528975f21560367d6b35e8","name":"ah","rank":13,"suit":"heart"},{"_id":"5a528a49f21560367d6b3647","name":"ac","rank":13,"suit":"club"}]');
+    let decRes = atob(str.slice(encTable.length + customStr.length));
+    let encRes = encTable + customStr + encCardsArray;
+
+    return {decRes: decRes, encRes: encRes};
+  }
+
   newGame() {
     this.getCardList();
   }
@@ -452,6 +463,7 @@ export class PlaygroundComponent implements OnInit {
   getParts() {
     this.getAllCards();
     this.gameService.getGamePart({room: this.room, ended: false}).subscribe((res) => {
+      console.log(res);
       if (res['success'] && res['parts']['turns']) {
         let part = res['parts'];
         let lastElId = part.turns.length - 1;
@@ -519,11 +531,26 @@ export class PlaygroundComponent implements OnInit {
           }
         }
         if (this.moveType == 'attack') {
-          this.showSkip = false;
-          if (this.turns.length > 0) {
-            this.canAttack(card, card_rank);
+          let next_user;
+          for (let i = 0; i < this.users.length; i++) {
+            if (this.users[i]['email'] == this.user_email) {
+              if (i == this.users.length - 1) {
+                next_user = this.users[0];
+              } else {
+                next_user = this.users[i+1];
+              }
+              break;
+            }
+          }
+          if (next_user.cards_count > 0) {
+            this.showSkip = false;
+            if (this.turns.length > 0) {
+             this.canAttack(card, card_rank);
+            } else {
+             this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: card, card_rank: card_rank, whom: '', move_type: this.moveType}, false);
+            }
           } else {
-            this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: card, card_rank: card_rank, whom: '', move_type: this.moveType}, false);
+            this.addGamePart(this.gamePart, this.game, this.room, {user: this.user_email, card: '', card_rank: 0, whom: '', move_type: 'skip'}, false);
           }
         }
       } else {

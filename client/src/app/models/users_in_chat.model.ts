@@ -5,4 +5,5 @@ export class UsersInChat {
     name: string;
     chair: string;
     position: any;
+    finished: boolean;
 }

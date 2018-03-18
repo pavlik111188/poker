@@ -10,6 +10,7 @@ const moment    = require('moment');
 const uniqueArrayPlugin = require('mongoose-unique-array');
 const async = require('async');
 
+// Models
 const config = require('../config/database'); // get db config file
 const User = require('../models/user'); // get the mongoose model
 const Role = require('../models/roles'); // get the mongoose model
@@ -26,6 +27,8 @@ const Pack = require('../models/pack'); // get the mongoose model
 const Turn = require('../models/turn'); // get the mongoose model
 const GamePart = require('../models/game_part'); // get the mongoose model
 const Trash = require('../models/trash'); // get the mongoose model
+
+const productController = require("../controllers/user_cards");
 
 // test
 router.get('/test', function ( req, res, next) {
@@ -430,7 +433,8 @@ router.post('/add_user_to_chat',  passport.authenticate('jwt', { session: false}
                         chair: req.body.chair,
                         position: req.body.position,
                         chair_number: req.body.chair_number,
-                        name: req.body.name
+                        name: req.body.name,
+                        finished: req.body.finished
                     });
                     newUserInChat.save(function(err) {
                         if (err) {
@@ -516,16 +520,15 @@ router.get('/get_user_cards', passport.authenticate('jwt', { session: false}), f
     var token = getToken(req.headers);
     if (token) {
         var decoded = jwt.decode(token, config.secret);
-        UserCards.findOne({
-            game: req.query.game,
-            table: req.query.table,
-            user: req.query.user
+        UserInChat.findOne({
+            room: req.query.table,
+            email: req.query.user
         }, function(err, cards) {
             if (err) throw err;
-            if (!cards) {
+            if (!cards.userCards) {
                 return res.status(403).send({success: false, msg: 'User Cards can not receive. '});
             } else {
-                res.json({success: true, cards: cards.cards});
+                res.json({success: true, cards: cards.userCards});
             }
         });
     } else {
@@ -537,11 +540,10 @@ router.post('/add_user_cards',  passport.authenticate('jwt', { session: false}),
     var token = getToken(req.headers);
     if (token) {
         var decoded = jwt.decode(token, config.secret);
-        UserCards.update({
-            game: req.body.game,
-            table: req.body.table,
-            user: req.body.user
-        }, req.body, {upsert: true}, function (err) {
+        UserInChat.update({
+            room: req.body.room,
+            email: req.body.user
+        }, {userCards: req.body.cards}, {upsert: false}, function (err) {
             if (err) {
                 return res.json({success: false, msg: 'Cards of user did not add.', error: err });
             }
@@ -556,16 +558,15 @@ router.get('/get_user_cards_count', passport.authenticate('jwt', { session: fals
     var token = getToken(req.headers);
     if (token) {
         var decoded = jwt.decode(token, config.secret);
-        UserCards.findOne({
-            game: req.query.game,
-            table: req.query.table,
-            user: req.query.user
+        UserInChat.findOne({
+            room: req.query.room,
+            email: req.query.user
         }, function(err, cards) {
             if (err) throw err;
             if (!cards) {
                 return res.status(403).send({success: false, msg: 'User Cards can not receive. '});
             } else {
-                res.json({success: true, cards_count: cards.cards.length});
+                res.json({success: true, cards_count: cards.userCards.length});
             }
         });
     } else {
@@ -636,6 +637,7 @@ router.get('/get_turn', passport.authenticate('jwt', { session: false}), functio
 router.get('/get_game_part', passport.authenticate('jwt', { session: false}), function(req, res, next) {
     var token = getToken(req.headers);
     if (token) {
+        var decoded = jwt.decode(token, config.secret);
         GamePart.find({
             room: req.query.room
         }, function(err, partsRes) {
@@ -669,25 +671,26 @@ router.get('/get_game_part', passport.authenticate('jwt', { session: false}), fu
                         res.json({success: true, parts: lastPart});
                         break;
                     case "defend":
-                        UserCards.findOne({
-                            table: req.query.room,
-                            user: defendUser
+                        UserInChat.findOne({
+                            room: req.query.room,
+                            email: defendUser
                         }, function(err, cards) {
-                            if (cards.cards.length > 0) {
+                            if (cards.userCards.length > 0) {
                                 if (lastPart['ended']) {
                                     next_user = lastTurn['user'];
+                                    distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: cards});
                                     return res.json({
                                         success: false,
                                         parts: [],
                                         part: lastPart['part'],
                                         lastTurn: {type: lastTurn['move_type'], next_user: next_user}});
                                 } else {
-                                    return UserCards.findOne({
-                                        table: req.query.room,
-                                        user: turns[0]['user']
+                                    return UserInChat.findOne({
+                                        room: req.query.room,
+                                        email: turns[0]['user']
                                     }, function(err, cards) {
                                         for (var c = 0; c < turnCards.length; c++) {
-                                            result = cards.cards.filter(x => x.card[0] === turnCards[c]);
+                                            result = cards.userCards.filter(x => x.card[0] === turnCards[c]);
                                             if (result.length > 0)
                                                 break;
                                         }
@@ -696,30 +699,26 @@ router.get('/get_game_part', passport.authenticate('jwt', { session: false}), fu
                                             return res.json({success: true, parts: partsRes[0], next_user: turns[0]['user']});
                                         } else {
                                             var finished = false;
-                                            UserInChat.find({
+                                            return UserInChat.find({
                                                 room: req.query.room,
                                                 email: { $ne: lastTurn['user'] },
                                                 finished: finished
                                             }, function(err, users) {
+                                                console.log('users: ', users);
                                                 for (var i = 0; i < users.length; i++) {
                                                     if (users[i]['email'] != turns[0]['user']) {
-                                                        UserCards.findOne({
-                                                            table: req.query.room,
-                                                            user: users[i]['email']
-                                                        }, function(err, cards) {
-                                                            for (var c = 0; c < turnCards.length; c++) {
-                                                                result = cards.cards.filter(x => x.card[0] === turnCards[c]);
-                                                                if (result.length > 0)
-                                                                    break;
-                                                            }
-                                                            if (result.length > 0) {
-                                                                partsRes[0].turns[turns.length-1]['whom'] = cards['user'];
-                                                                return res.json({success: true, parts: partsRes[0], next_user: cards['user']});
-                                                            } else {
-                                                                // distributionCards(req.query.room);
-                                                                updateGamePart(req.query.room, req.query.ended, true);
-                                                            }
-                                                        });
+                                                        for (var c = 0; c < turnCards.length; c++) {
+                                                            result = users.userCards.filter(x => x.card[0] === turnCards[c]);
+                                                            if (result.length > 0)
+                                                                break;
+                                                        }
+                                                        if (result.length > 0) {
+                                                            partsRes[0].turns[turns.length-1]['whom'] = cards['user'];
+                                                            return res.json({success: true, parts: partsRes[0], next_user: cards['user']});
+                                                        } else {
+                                                            distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: users});
+                                                            updateGamePart(req.query.room, req.query.ended, true);
+                                                        }
                                                     } else {
                                                         updateGamePart(req.query.room, req.query.ended, true);
                                                         return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: defendUser}});
@@ -790,6 +789,8 @@ router.get('/get_game_part', passport.authenticate('jwt', { session: false}), fu
                             }
                             if (no_users)
                                 return res.status(403).send({success: false, msg: 'User can not receive. '});
+                            distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: users});
+                            updateGamePart(req.query.room, req.query.ended, true);
                             return res.json({success: false, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user}});
                         }).sort( { chair_number: 'asc' } );
                         break;
@@ -806,37 +807,31 @@ router.get('/get_game_part', passport.authenticate('jwt', { session: false}), fu
                             if (users.length > 0) {
                                 for (var i = 0; i < users.length; i++) {
                                     var currUser = users[i];
-                                    UserCards.findOne({
-                                        table: req.query.room,
-                                        user: currUser['email']
-                                    }, function(err, cards) {
-                                        for (var c = 0; c < turnCards.length; c++) {
-                                            result = cards.cards.filter(x => x.card[0] === turnCards[c]);
-                                            if (result.length > 0)
-                                                break;
-                                        }
-                                        if (result.length > 0) {
-                                            next_user = currUser['email'];
-                                            return res.json({success: true, parts: partsRes[0], next_user: next_user});
-                                        } else {
-                                            async.eachSeries(trashCards, function updateObject (obj, done) {
-                                                // Model.update(condition, doc, callback)
-                                                Trash.findOneAndUpdate({ room: req.query.room }, { $addToSet : { cards: obj.card }}, { upsert: true }, done);
-                                            }, function allDone (error) {
-                                                // distributionCards(req.query.room);
-                                                updateGamePart(req.query.room, req.query.ended, true);
-                                                next_user = partsRes[0].turns.filter(x => x.move_type === 'defend');
-                                                return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user[0].user}});
-                                            });
-                                        }
-                                    });
+                                    for (var c = 0; c < turnCards.length; c++) {
+                                        result = currUser.userCards.filter(x => x.card[0] === turnCards[c]);
+                                        if (result.length > 0)
+                                            break;
+                                    }
+                                    if (result.length > 0) {
+                                        next_user = currUser['email'];
+                                        return res.json({success: true, parts: partsRes[0], next_user: next_user});
+                                    } else {
+                                        async.eachSeries(trashCards, function updateObject (obj, done) {
+                                            // Model.update(condition, doc, callback)
+                                            Trash.findOneAndUpdate({ room: req.query.room }, { $addToSet : { cards: obj.card }}, { upsert: true }, done);
+                                        }, function allDone (error) {
+                                            distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: users});
+                                            updateGamePart(req.query.room, req.query.ended, true);
+                                            next_user = partsRes[0].turns.filter(x => x.move_type === 'defend');
+                                            return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user[0].user}});
+                                        });
+                                    }
                                 }
                             } else {
                                 async.eachSeries(trashCards, function updateObject (obj, done) {
                                     Trash.findOneAndUpdate({ room: req.query.room }, { $addToSet : { cards: obj.card }}, { upsert: true }, done);
                                 }, function allDone (error) {
-                                    console.log('error: ', error);
-                                    // distributionCards(req.query.room);
+                                    distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: users});
                                     updateGamePart(req.query.room, req.query.ended, true);
                                 });
 
@@ -867,10 +862,9 @@ router.post('/add_game_part',  passport.authenticate('jwt', { session: false}), 
 
             async.eachSeries(turns.turns, function updateObject (obj, done) {
                 if ((obj.card) && (obj.card.length > 0)) {
-                    console.log('if: ', obj);
-                    UserCards.findOneAndUpdate(
-                        { table: req.body.room, user: turns.user},
-                        { $addToSet : { cards: {'card': obj.card, 'rank': obj.card_rank}}}, { upsert: false }, done);
+                    UserInChat.findOneAndUpdate(
+                        { room: req.body.room, email: turns.user},
+                        { $addToSet : { userCards: {'card': obj.card, 'rank': obj.card_rank}}}, { upsert: false }, done);
                 }
             }, function allDone (error) {
                 // distributionCards(req.body.room);
@@ -940,10 +934,10 @@ router.post('/add_game_part',  passport.authenticate('jwt', { session: false}), 
                                 if (turns['move_type'] == 'skip') {
                                     res.json({success: true, next_user: turns.whom, move_type: 'defend'});
                                 } else {
-                                    UserCards.update({
-                                        table: req.body.room,
-                                        user: turns.user
-                                    }, { $pull: { cards: { card: turns.card } } }, {upsert: false}, function (err) {
+                                    UserInChat.update({
+                                        room: req.body.room,
+                                        email: turns.user
+                                    }, { $pull: { userCards: { card: turns.card } } }, {upsert: false}, function (err) {
                                         if (err) {
                                             return res.json({success: false, msg: 'Cards of user did not remove.', error: err });
                                         } else {
@@ -1004,9 +998,73 @@ router.post('/push_cards',  passport.authenticate('jwt', { session: false}), fun
     if (token) {
         var decoded = jwt.decode(token, config.secret);
         var user = decoded.user.email;
-        var count = 6 - req.body.count;
         var room = req.body.room;
-        Pack.findOne({
+        var users = req.body.users;
+        // console.log(req.body.users);
+        if (user == req.body.user) {
+            getPack(room).exec(function(err, packRes){
+                if(err)
+                    return console.log(err);
+                var packCards = JSON.parse(decode(packRes.cards, room));
+                if (packCards.length > 0) {
+                    GamePart.find({
+                        room: room
+                    }, function(err, parts) {
+                        var part = parts[0];
+                        var firstTurn = part.turns[0];
+                        var firstTurnUser = firstTurn.user;
+                        UserInChat.findOne({
+                            room: room,
+                            email: firstTurnUser
+                        }, function(err, userCards) {
+                            if (userCards.userCards.length < 6) {
+                                var count = 6 - userCards.userCards.length;
+                                for (var i = 0; i < count; i++) {
+                                    var rand = Math.floor(Math.random() * packCards.length);
+                                    var newCard = packCards[rand];
+                                    packCards.splice(rand, 1);
+                                    var cards = {'card': newCard.name, 'rank': newCard.rank};
+                                    UserInChat.findOneAndUpdate({room: room, email: user}, {$addToSet: { userCards: cards }}, { upsert: false },
+                                        function (err) {
+                                            if(!err) {
+                                                console.log('packCards: ', packCards);
+                                            }
+                                        });
+                                }
+                            }
+                        });
+                    }).sort( { part: 'desc' } );
+                }
+            });
+            /*Pack.findOne({
+                room: room
+            }, function(err, pack) {
+                var packCards = decode(pack.cards, room);
+                if (packCards.length > 0) {
+                    GamePart.find({
+                        room: room
+                    }, function(err, parts) {
+                        var part = parts[0];
+                        var firstTurn = part.turns[0];
+                        var firstTurnUser = firstTurn.user;
+                        UserCards.findOne({
+                            table: room,
+                            user: firstTurnUser
+                        }, function(err, cards) {
+                            if (cards.cards.length < 6) {
+
+                                console.log('cards.cards.length: ', cards.cards.length);
+                                console.log('cards.cards: ', cards.cards.length);
+                                // pushCards(6 - cards.cards.length, packCards, cards.user, room);
+                            }
+                        });
+                    }).sort( { part: 'desc' } );
+                } else {
+                    res.json({success: true, msg: 'Pack is empty.'});
+                }
+            });*/
+        }
+        /*Pack.findOne({
             room : room
         }, function(err, pack) {
             var packJson = JSON.parse(decode(pack.cards, room));
@@ -1016,7 +1074,7 @@ router.post('/push_cards',  passport.authenticate('jwt', { session: false}), fun
                     if (packJson.length > 0) {
                         var rand = Math.floor(Math.random() * packJson.length);
                         var newCard = packJson[rand];
-                        var cards = {'card': newCard['name'], 'rank': newCard['rank']};
+                        var cards = {'rank': newCard['rank'], 'card': newCard['name']};
                         packJson.splice(rand, 1);
                         UserCards.findOneAndUpdate({table: room, user: user}, {$addToSet: { cards: cards }}, { upsert: false }, done);
                     }
@@ -1031,7 +1089,7 @@ router.post('/push_cards',  passport.authenticate('jwt', { session: false}), fun
             } else {
                 res.json({success: true, msg: 'Pack is empty.'});
             }
-        });
+        });*/
     } else {
         return res.status(403).send({success: false, msg: 'No token provided.'});
     }
@@ -1086,26 +1144,42 @@ function encode(str, room) {
     return encRes;
 }
 
-function distributionCards(room) {
-    Pack.findOne({
-        room : room
-    }, function(err, pack) {
-        var packCards = decode(pack.cards, room);
-        /*UserInChat.find({
-            room: room
-        }, function(err, users) {
-            for (var i = 0; i < users.length; i++) {
-                UserCards.findOne({
-                    table: room,
-                    user: users[i]['email']
-                }, function(err, cards) {
-                    if (cards.cards.length < 6) {
-                        pushCards(6 - cards.cards.length, packCards, cards.user, room);
-                    }
+function distributionCards(data) {
+    var ended = false;
+    if (data.currUser == data.part.turns[0].user) {
+        Pack.findOne({
+            room : data.room
+        }, function(err, pack) {
+            var packCards = decode(pack.cards, data.room);
+            var packJson = JSON.parse(packCards);
+            if (packJson.length > 0) {
+                UserInChat.find({
+                    room: data.room,
+                    finished: ended
+                }, function(err, users) {
+                    async.eachSeries(users, function updateObject (user, done) {
+                        var cards = [];
+                        if (user.userCards.length < 6) {
+                            for (var i = 0; i < 6 - user.userCards.length; i++) {
+                                if (packJson.length > 0) {
+                                    var rand = Math.floor(Math.random() * packJson.length);
+                                    var newCard = packJson[rand];
+                                    packJson.splice(rand, 1);
+                                    var card = {'card': newCard.name, 'rank': newCard.rank};
+                                    cards.push(card);
+                                } else {
+                                    Pack.update({room: data.room}, {cards: encode(JSON.stringify(packJson), data.room)}, { upsert: false }, function (err) {});
+                                }
+                            }
+                            UserInChat.update({ room: data.room, email:user.email  }, { $push: { userCards: { $each: cards } } }, { upsert: false }, done);
+                        }
+                    }, function allDone (error) {
+                        Pack.update({room: data.room}, {cards: encode(JSON.stringify(packJson), data.room)}, { upsert: false }, function (err) {});
+                    });
                 });
             }
-        });*/
-    });
+        });
+    }
 }
 
 function pushCards(count, packCards, user, room) {
@@ -1115,7 +1189,7 @@ function pushCards(count, packCards, user, room) {
         var newCard = packJson[rand];
         packJson.splice(rand, 1);
         var cards = {'card': newCard.name, 'rank': newCard.rank};
-        UserCards.findOneAndUpdate({table: room, user: user}, {$addToSet: { cards: cards }}, { upsert: false },
+        UserInChat.findOneAndUpdate({room: room, email: user}, {$addToSet: { userCards: cards }}, { upsert: false },
             function (err) {
                 if(!err) {
                     Pack.findOneAndUpdate({room: room}, {cards: encode(JSON.stringify(packJson), room)}, { upsert: false },
@@ -1127,6 +1201,11 @@ function pushCards(count, packCards, user, room) {
                 }
         });
     }
+}
+
+function getPack(room){
+    var result = Pack.findOne({room: room});
+    return result;
 }
 
 function getArray(n) {

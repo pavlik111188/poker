@@ -7,7 +7,8 @@ var UserInChatSchema = new mongoose.Schema({
     chair: String,
     chair_number: Number,
     position: Array,
-    finished: Boolean
+    finished: Boolean,
+    userCards: { type: Array, default: [] }
 });
 
 module.exports = mongoose.model('UserInChat', UserInChatSchema);

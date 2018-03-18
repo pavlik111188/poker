@@ -9,6 +9,7 @@ import { UserCards } from '../models/user_cards.model';
 import { Pack } from '../models/pack.model';
 import {Turn} from "../models/turn.model";
 import {Trash} from "../models/trash.model";
+import {UsersInChat} from "../models/users_in_chat.model";
 
 @Injectable()
 export class CardService {
@@ -62,7 +63,7 @@ export class CardService {
     getUserCardsCount(data) {
       const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
       const url = `${this.domain}${this.getUserCardsCountUrl}`;
-      return this.http.get<UserCards>(url, {headers: headers, params: data})
+      return this.http.get<UsersInChat>(url, {headers: headers, params: data})
         .map((response) => response);
     }
 

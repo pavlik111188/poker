@@ -218,7 +218,7 @@ export class PlaygroundComponent implements OnInit {
   }
 
   addUserToChat(id, position, chair_number) {
-    this.chatService.addUserToChat({room: this.room, chair: id, position: position, name: this.user_name, chair_number: chair_number}).subscribe((res) => {
+    this.chatService.addUserToChat({room: this.room, chair: id, position: position, name: this.user_name, chair_number: chair_number, finished: false}).subscribe((res) => {
       if (res['success']) {
         this.getUsersInChat(this.room);
         this.socket.emit('update-table-game', {room: this.room, action: 'choose-chair'});
@@ -243,7 +243,6 @@ export class PlaygroundComponent implements OnInit {
   }
 
   getUserByChair(chair) {
-    console.log(this.users);
     let res;
     for (var _i = 0; _i < this.users.length; _i++) {
       var user = this.users[_i];
@@ -267,7 +266,7 @@ export class PlaygroundComponent implements OnInit {
             this.startedGame = true;
             this.trump = res['game']['trump'];
             this.getCardList();
-            this.getParts();
+            // this.getParts();
           }
           if (this.users.length > 1 && this.tableOwner == this.user_email && !this.startedGame)
             this.userCanStart = true;
@@ -303,12 +302,12 @@ export class PlaygroundComponent implements OnInit {
       let userCards = [];
       for (let i = 0; i < 6; i++) {
         let rand = Math.floor(Math.random() * this.cards.length);
-        userCards.push({rank: this.cards[rand].rank, card: this.cards[rand].name});
+        userCards.push({card: this.cards[rand].name, rank: this.cards[rand].rank});
         this.cards.splice(rand, 1);
       }
       this.cardService.addUserCards({
         game: this.game,
-        table: this.room,
+        room: this.room,
         user: this.users[j]['email'],
         cards: userCards
       }).subscribe((res) => {
@@ -383,7 +382,7 @@ export class PlaygroundComponent implements OnInit {
       if (this.startedGame) {
         for (let j = 0; j < this.users.length; j++ ) {
           let user = this.users[j];
-          this.cardService.getUserCardsCount({game: this.game, table: this.room, user: user['email']}).subscribe((res) => {
+          this.cardService.getUserCardsCount({room: this.room, user: user['email']}).subscribe((res) => {
             this.users[j]['cards_count'] = res['cards_count'];
           });
         }
@@ -402,7 +401,7 @@ export class PlaygroundComponent implements OnInit {
   }
 
   getUserCardsCount(user) {
-    let res = this.cardService.getUserCardsCount({game: this.game, table: this.room, user: user}).subscribe((res) => {
+    let res = this.cardService.getUserCardsCount({room: this.room, user: user}).subscribe((res) => {
       // if(res['success']) {
         return res['cards_count'];
       // }
@@ -443,10 +442,12 @@ export class PlaygroundComponent implements OnInit {
     if (data.card) {
       let pos;
       for (let user of this.users) {
+        console.log(this.users);
         if (data.user == user['email']) {
           pos = user['position'];
         }
       }
+      console.log(pos);
       this.lowestTrumpResult = {card: data.card, position: pos};
       this.userTurn = data.user;
       this.showLowestTrump = true;
@@ -484,7 +485,7 @@ export class PlaygroundComponent implements OnInit {
         this.lastTurn = this.turns[lastElId];
         this.gamePart = part.part;
         if (this.turns[lastElId].move_type == 'defend') {
-          // console.log(this.lastTurn);
+
         }
         if (this.userTurn == this.user_email && this.turns && this.moveType == 'attack') {
           this.showSkip = true;
@@ -499,9 +500,12 @@ export class PlaygroundComponent implements OnInit {
         this.turnCards = [];
         this.userTurn = res['lastTurn']['next_user'];
         this.moveType = 'attack';
-        this.getTrashCount();
-        if (this.myCards.length < 6)
-          this.pushCards();
+        setTimeout(()=>{
+          this.getTrashCount();
+          this.getUserCards();
+        },1000);
+        // if (this.user_email == this.tableOwner)
+          // this.pushCards();
       } else {
         this.getLowestTrump();
       }
@@ -624,8 +628,9 @@ export class PlaygroundComponent implements OnInit {
   }
 
   pushCards() {
+    console.log(this.users);
     let count = this.myCards.length;
-    this.cardService.pushCards({room: this.room, count: count}).subscribe((res) => {
+    this.cardService.pushCards({room: this.room, count: count, user: this.user_email, users: this.users}).subscribe((res) => {
       if (res['success']) {
         this.getUserCards();
       }

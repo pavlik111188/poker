@@ -103,9 +103,11 @@ export class DashboardComponent implements OnInit {
   removeTable(id, email) {
     this.tableService.removeTable({id: id, email: email}).subscribe((res) => {
       if (res['success']) {
-        this.getTableList();
-        this.socket.emit('remove-table', {msg: 'Удален стол (:', type: 'alert-danger', id: id, email: email});
-        this.flashMessagesService.show('Удален стол (:', {cssClass: 'alert-danger', timeout: 3000});
+        setTimeout(() => {
+          this.getTableList();
+          this.socket.emit('remove-table', {msg: 'Удален стол (:', type: 'alert-danger', id: id, email: email});
+          this.flashMessagesService.show('Удален стол (:', {cssClass: 'alert-danger', timeout: 3000});
+        }, 500);
       } else {
         console.log(res['msg']);
       }

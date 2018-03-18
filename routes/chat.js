@@ -37,6 +37,8 @@ io.on('connection', function (socket) {
     });
 
     socket.on('start-new-game', function (data) {
+        // console.log('data: ', data);
+        // console.log('users: ', data.users);
         socket.broadcast.emit('start-new-game', data);
     });
 
@@ -76,87 +78,27 @@ function getUsersCards(room, trump) {
     var minRank = 14;
     var minCard = '';
     var userCards;
-    UserCards.find({
-        table: room
+    UserInChat.find({
+        room: room
     }, function (err, user_cards) {
         userCards = user_cards;
         getUserTrumps(user_cards, trump, room);
     });
-
-    /*UserCards.find({
-        table: room
-    }, function (err, user_cards) {
-        if (err) {
-            // return err;
-        } else {
-            userCards = user_cards;
-            if(user_cards.length > 0) {
-                for (var i = 0; i < user_cards.length; i++) {
-                    var userId = i;
-                    var cards = user_cards[i].cards;
-                    var trumps = [];
-                    var userEmail = user_cards[i].user;
-
-                    for (var c = 0; c < cards.length; c++) {
-                        if (trump == cards[c].slice(1))
-                            trumps.push(cards[c]);
-                    }
-
-                    if (trumps.length > 0) {
-                        var userTrumps = {user: user_cards[i].user, trumps: trumps};
-                        var trumpsLen = trumps.length;
-                        for (var t = 0; t < userTrumps.trumps.length; t++) {
-                            console.log(trumps[t]);
-                            Card.findOne({
-                                name: trumps[t]
-                            }, function (err, res) {
-                                if (err) {
-                                    // return err;
-                                } else {
-                                    if (res.rank < minRank) {
-                                        minRank = res.rank;
-                                        console.log(res.rank, res.name);
-                                        console.log(userTrumps);
-                                        trumpsArray = {user: userTrumps.user, minRank: res.rank, card: res.name};
-                                        if (t == trumpsLen) {
-                                            if (i == userCards.length) {
-                                                io.emit('update-table-game', {room: room, action: 'get-lowest-trump', result: trumpsArray});
-                                                // return trumpsArray;
-                                            }
-                                        }
-                                    }
-                                }
-                            });
-                            /!*if (result) {
-                                console.log('result: ', result);
-                                if (result.rank < minRank) {
-                                    minRank = result.rank;
-                                    minCard = result.name;
-                                }
-                            }*!/
-                        }
-                        // trumpsArray.push({user: res[i].user, minRank: {card: minCard, rank: minRank}});
-                    }
-                }
-            }
-        }
-
-    });*/
 }
 
 function getUserTrumps(data, trump, room) {
     var userTrumps = [];
     for (var i = 0; i < data.length; i++) {
         var userId = i;
-        var cards = data[i].cards;
+        var cards = data[i].userCards;
         var trumps = [];
-        var userEmail = data[i].user;
-
+        var userEmail = data[i].email;
         for (var c = 0; c < cards.length; c++) {
+            console.log('cards[c]: ', cards[c]);
             if (trump == cards[c].card.slice(1))
                 trumps.push(cards[c]);
         }
-        userTrumps.push({user: data[i].user, trumps: trumps});
+        userTrumps.push({user: data[i].email, trumps: trumps});
     }
     getLowestTrump(userTrumps, room);
 }
@@ -209,7 +151,7 @@ function updatePack(data) {
         }
         return res;
     });*/
-    console.log('data: ', data);
+    // console.log('data: ', data);
     Pack.update({room: data.room},
         {
             game: data.game,
@@ -234,17 +176,6 @@ function getPack(data) {
         io.in(data.room).emit('update-table-game', res);
         return res;
     });
-    // console.log('result: ', result);
-    /*Pack.findOne({
-        room: data.room
-    }, function (err, res) {
-        if (err) {
-            return err;
-        }
-        console.log('res: ', res);
-
-        result = res;
-    });*/
 }
 
 module.exports = router;

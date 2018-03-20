@@ -329,6 +329,12 @@
   transform: rotate(43deg);
 }
 
+.looser {
+  position: absolute;
+  top: 240px;
+  left: 215px;
+}
+
 @media (min-width: 768px) {
   .play-main {
     background: url("/assets/img/bg.jpg") no-repeat top / contain;

@@ -58,6 +58,7 @@ export class PlaygroundComponent implements OnInit {
   showAbandon: boolean = false;
   trashCount: number;
   turnCards: any = [];
+  looser: string;
 
   constructor(
     private chairService: ChairService,
@@ -315,6 +316,7 @@ export class PlaygroundComponent implements OnInit {
           this.userCanStart = false;
           if (j == this.users.length - 1) {
             this.getUserCards();
+            this.getParts();
           }
         },
         (err) => {
@@ -506,6 +508,14 @@ export class PlaygroundComponent implements OnInit {
         },1000);
         // if (this.user_email == this.tableOwner)
           // this.pushCards();
+      } else if (res['finish']) {
+
+        this.authenticationService.getUserName(res['looser']).subscribe((result) => {
+          this.looser = result;
+        },
+          (error) => {
+
+          });
       } else {
         this.getLowestTrump();
       }

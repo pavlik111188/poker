@@ -94,7 +94,6 @@ function getUserTrumps(data, trump, room) {
         var trumps = [];
         var userEmail = data[i].email;
         for (var c = 0; c < cards.length; c++) {
-            console.log('cards[c]: ', cards[c]);
             if (trump == cards[c].card.slice(1))
                 trumps.push(cards[c]);
         }

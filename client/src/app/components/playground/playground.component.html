@@ -61,4 +61,5 @@
   <div *ngIf="showAbandon" class="skip-area">
     <button (click)="turn('', '', 'abandon')" class="btn btn-danger">Принять</button>
   </div>
+  <h2 *ngIf="looser" class="looser">{{looser}} проиграл (:</h2>
 </div>

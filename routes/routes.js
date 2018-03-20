@@ -524,10 +524,21 @@ router.get('/get_user_cards', passport.authenticate('jwt', { session: false}), f
             room: req.query.table,
             email: req.query.user
         }, function(err, cards) {
-            if (err) throw err;
-            if (!cards.userCards) {
+            if (err)
+                return res.status(403).send({success: false, msg: err});
+            if (!cards) {
                 return res.status(403).send({success: false, msg: 'User Cards can not receive. '});
             } else {
+                if (cards.userCards.length < 1) {
+                    Pack.findOne({room: req.query.table}, function (error, pack) {
+                        var packCards = decode(pack.cards, req.query.table);
+                        var packJson = JSON.parse(packCards);
+                        if (packJson.length < 1) {
+                            var finished = true;
+                            UserInChat.update({room: req.query.table, email: req.query.user}, {finished: finished}, { upsert: false }, function (err) {});
+                        }
+                    })
+                }
                 res.json({success: true, cards: cards.userCards});
             }
         });
@@ -655,6 +666,7 @@ router.get('/get_game_part', passport.authenticate('jwt', { session: false}), fu
                 var defendUser;
                 var trashCards = [];
                 var skipUsers = [];
+                var finished = false;
                 for (var c = 0; c < turns.length; c++) {
                     if (turns[c]['card'][0])
                         turnCards.push(turns[c]['card'][0]);
@@ -665,185 +677,228 @@ router.get('/get_game_part', passport.authenticate('jwt', { session: false}), fu
                     if (turns[c]['move_type'] == 'skip')
                         skipUsers.push(turns[c]['user']);
                 }
-                switch (lastTurn['move_type'])
-                {
-                    case "attack":
-                        res.json({success: true, parts: lastPart});
-                        break;
-                    case "defend":
-                        UserInChat.findOne({
-                            room: req.query.room,
-                            email: defendUser
-                        }, function(err, cards) {
-                            if (cards.userCards.length > 0) {
-                                if (lastPart['ended']) {
-                                    next_user = lastTurn['user'];
-                                    distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: cards});
-                                    return res.json({
-                                        success: false,
-                                        parts: [],
-                                        part: lastPart['part'],
-                                        lastTurn: {type: lastTurn['move_type'], next_user: next_user}});
-                                } else {
-                                    return UserInChat.findOne({
-                                        room: req.query.room,
-                                        email: turns[0]['user']
-                                    }, function(err, cards) {
-                                        for (var c = 0; c < turnCards.length; c++) {
-                                            result = cards.userCards.filter(x => x.card[0] === turnCards[c]);
-                                            if (result.length > 0)
-                                                break;
-                                        }
-                                        if (result.length > 0) {
-                                            // partsRes[0].turns[turns.length-1]['whom'] = turns[0]['user'];
-                                            return res.json({success: true, parts: partsRes[0], next_user: turns[0]['user']});
+                UserInChat.find({
+                    room: req.query.room,
+                    finished: finished
+                }, function (err, usersInChat) {
+                    if (usersInChat.length < 2) {
+                        return res.json({success: false, parts: [], finish: true, looser: usersInChat[0].email});
+                    } else {
+                        switch (lastTurn['move_type'])
+                        {
+                            case "attack":
+                                res.json({success: true, parts: lastPart});
+                                break;
+                            case "defend":
+                                UserInChat.findOne({
+                                    room: req.query.room,
+                                    email: defendUser
+                                }, function(err, cards) {
+                                    if (cards.userCards.length > 0) {
+                                        if (lastPart['ended']) {
+                                            next_user = lastTurn['user'];
+                                            distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: cards, trashCards: trashCards});
+                                            return res.json({
+                                                success: false,
+                                                parts: [],
+                                                part: lastPart['part'],
+                                                lastTurn: {type: lastTurn['move_type'], next_user: next_user}});
                                         } else {
-                                            var finished = false;
-                                            return UserInChat.find({
+
+                                            return UserInChat.findOne({
                                                 room: req.query.room,
-                                                email: { $ne: lastTurn['user'] },
-                                                finished: finished
-                                            }, function(err, users) {
-                                                console.log('users: ', users);
-                                                for (var i = 0; i < users.length; i++) {
-                                                    if (users[i]['email'] != turns[0]['user']) {
-                                                        for (var c = 0; c < turnCards.length; c++) {
-                                                            result = users.userCards.filter(x => x.card[0] === turnCards[c]);
-                                                            if (result.length > 0)
-                                                                break;
-                                                        }
-                                                        if (result.length > 0) {
-                                                            partsRes[0].turns[turns.length-1]['whom'] = cards['user'];
-                                                            return res.json({success: true, parts: partsRes[0], next_user: cards['user']});
-                                                        } else {
-                                                            distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: users});
-                                                            updateGamePart(req.query.room, req.query.ended, true);
-                                                        }
-                                                    } else {
-                                                        updateGamePart(req.query.room, req.query.ended, true);
-                                                        return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: defendUser}});
-                                                    }
+                                                email: turns[0]['user']
+                                            }, function(err, cards) {
+                                                for (var c = 0; c < turnCards.length; c++) {
+                                                    result = cards.userCards.filter(x => x.card[0] === turnCards[c]);
+                                                    if (result.length > 0)
+                                                        break;
                                                 }
-                                            }).sort( { chair_number: 'asc' } );
-                                        }
-                                    });
-                                }
-                            }
-                            else {
-                                Pack.findOne({
-                                    room: req.query.room
-                                }, function(err, pack) {
-                                    var packResult = JSON.parse(decode(pack.cards, req.query.room));
-                                    if (packResult.length < 1) {
-                                        var finished = false;
-                                        UserInChat.find({
-                                            room: req.query.room
-                                        }, function(err, usersInChat) {
-                                            if (err) throw err;
-                                            var user, next_user;
-                                            for (var i = 0; i < usersInChat.length; i++) {
-                                                if (usersInChat[i].email == defendUser) {
-                                                    if (i == usersInChat.length - 1) {
-                                                        user = usersInChat[0];
-                                                    } else {
-                                                        user = usersInChat[i+1];
-                                                    }
-                                                    next_user = user.email;
-                                                    break;
-                                                }
-                                            }
-                                            updateGamePart(req.query.room, false, true);
-                                            var finishedTrue = true;
-                                            UserInChat.update({
-                                                room: req.query.room,
-                                                email: defendUser
-                                            }, { finished: finishedTrue }, {upsert: false}, function (err) {
-                                                if (err) {
-                                                    return res.json({success: false, msg: 'Can not update an user.', error: err });
+                                                if (result.length > 0) {
+                                                    // partsRes[0].turns[turns.length-1]['whom'] = turns[0]['user'];
+                                                    return res.json({success: true, parts: partsRes[0], next_user: turns[0]['user']});
                                                 } else {
-                                                    return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user}});
+                                                    var finished = false;
+                                                    return UserInChat.find({
+                                                        room: req.query.room,
+                                                        email: { $ne: lastTurn['user'] },
+                                                        finished: finished
+                                                    }, function(err, users) {
+                                                        for (var i = 0; i < users.length; i++) {
+                                                            if (users[i]['email'] != turns[0]['user']) {
+                                                                for (var c = 0; c < turnCards.length; c++) {
+                                                                    result = users.userCards.filter(x => x.card[0] === turnCards[c]);
+                                                                    if (result.length > 0)
+                                                                        break;
+                                                                }
+                                                                if (result.length > 0) {
+                                                                    partsRes[0].turns[turns.length-1]['whom'] = cards['user'];
+                                                                    return res.json({success: true, parts: partsRes[0], next_user: cards['user']});
+                                                                } else {
+                                                                    // Trash.update({ room: req.query.room  }, { $push: { cards: { $each: trashCards } } }, { upsert: true }, function (err) {});
+                                                                    distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: users, trashCards: trashCards});
+                                                                    updateGamePart(req.query.room, req.query.ended, true);
+                                                                }
+                                                            } else {
+                                                                // Trash.update({ room: req.query.room  }, { $push: { cards: { $each: trashCards } } }, { upsert: true }, function (err) {});
+                                                                distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: users, trashCards: trashCards});
+                                                                updateGamePart(req.query.room, req.query.ended, true);
+                                                                return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: defendUser}});
+                                                                /*async.eachSeries(trashCards, function updateObject (obj, done) {
+                                                                    Trash.update({ room: req.query.room  }, { $push: { cards: { $each: obj.card } } }, { upsert: true }, done);
+                                                                    // Trash.findOneAndUpdate({ room: req.query.room }, { $addToSet : { cards: obj.card }}, { upsert: true }, done);
+                                                                }, function allDone (error) {
+                                                                    distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: users});
+                                                                    updateGamePart(req.query.room, req.query.ended, true);
+                                                                    return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: defendUser}});
+                                                                });*/
+
+                                                            }
+                                                        }
+                                                    }).sort( { chair_number: 'asc' } );
                                                 }
                                             });
-                                        }).sort( { chair_number: 'asc' } );
-                                    } else {
-
+                                        }
+                                    }
+                                    else {
+                                        Pack.findOne({
+                                            room: req.query.room
+                                        }, function(err, pack) {
+                                            var packResult = JSON.parse(decode(pack.cards, req.query.room));
+                                            if (packResult.length < 1) {
+                                                var finished = false;
+                                                UserInChat.find({
+                                                    room: req.query.room
+                                                }, function(err, usersInChat) {
+                                                    if (err) throw err;
+                                                    var user, next_user;
+                                                    for (var i = 0; i < usersInChat.length; i++) {
+                                                        if (usersInChat[i].email == defendUser) {
+                                                            if (i == usersInChat.length - 1) {
+                                                                user = usersInChat[0];
+                                                            } else {
+                                                                user = usersInChat[i+1];
+                                                            }
+                                                            next_user = user.email;
+                                                            break;
+                                                        }
+                                                    }
+                                                    updateGamePart(req.query.room, false, true);
+                                                    var finishedTrue = true;
+                                                    UserInChat.update({
+                                                        room: req.query.room,
+                                                        email: defendUser
+                                                    }, { finished: finishedTrue }, {upsert: false}, function (err) {
+                                                        if (err) {
+                                                            return res.json({success: false, msg: 'Can not update an user.', error: err });
+                                                        } else {
+                                                            return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user}});
+                                                        }
+                                                    });
+                                                }).sort( { chair_number: 'asc' } );
+                                            } else {
+                                                // Trash.update({ room: req.query.room  }, { $push: { cards: { $each: trashCards } } }, { upsert: true }, function (err) {});
+                                                distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: usersInChat, trashCards: trashCards});
+                                                updateGamePart(req.query.room, req.query.ended, true);
+                                                next_user = partsRes[0].turns.filter(x => x.move_type === 'defend');
+                                                return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user[0].user}});
+                                                /*async.eachSeries(trashCards, function updateObject (obj, done) {
+                                                    Trash.update({ room: req.query.room  }, { $push: { cards: { $each: obj.card } } }, { upsert: true }, done);
+                                                    // Trash.findOneAndUpdate({ room: req.query.room }, { $addToSet : { cards: obj.card }}, { upsert: true }, done);
+                                                }, function allDone (error) {
+                                                    distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: users});
+                                                    updateGamePart(req.query.room, req.query.ended, true);
+                                                    next_user = partsRes[0].turns.filter(x => x.move_type === 'defend');
+                                                    return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user[0].user}});
+                                                });*/
+                                            }
+                                        });
                                     }
                                 });
-                            }
-                        });
-                        break;
-                    case "abandon":
-                        var finished = false;
-                        return UserInChat.find({
-                            room: req.query.room,
-                            finished: finished
-                        }, function(no_users, users) {
-                            for (var i = 0; i < users.length; i++) {
-                                if (users[i]['email'] == lastTurn['user']) {
-                                    if (users[i+1]) {
-                                        next_user = users[i+1]['email'];
-                                    } else {
-                                        next_user = users[0]['email'];
+                                break;
+                            case "abandon":
+                                var finished = false;
+                                return UserInChat.find({
+                                    room: req.query.room,
+                                    finished: finished
+                                }, function(no_users, users) {
+                                    for (var i = 0; i < users.length; i++) {
+                                        if (users[i]['email'] == lastTurn['user']) {
+                                            if (users[i+1]) {
+                                                next_user = users[i+1]['email'];
+                                            } else {
+                                                next_user = users[0]['email'];
+                                            }
+                                        }
                                     }
-                                }
-                            }
-                            if (no_users)
-                                return res.status(403).send({success: false, msg: 'User can not receive. '});
-                            distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: users});
-                            updateGamePart(req.query.room, req.query.ended, true);
-                            return res.json({success: false, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user}});
-                        }).sort( { chair_number: 'asc' } );
-                        break;
-                    case "skip":
-                        skipUsers.push(defendUser);
-                        var finished = false;
-                        UserInChat.find({
-                            room: req.query.room,
-                            email: { $nin: skipUsers },
-                            finished: finished
-                        }, function(err, users) {
-                            if (err)
-                                return res.status(403).send({success: false, msg: 'Users can not receive. '});
-                            if (users.length > 0) {
-                                for (var i = 0; i < users.length; i++) {
-                                    var currUser = users[i];
-                                    for (var c = 0; c < turnCards.length; c++) {
-                                        result = currUser.userCards.filter(x => x.card[0] === turnCards[c]);
-                                        if (result.length > 0)
-                                            break;
-                                    }
-                                    if (result.length > 0) {
-                                        next_user = currUser['email'];
-                                        return res.json({success: true, parts: partsRes[0], next_user: next_user});
+                                    if (no_users)
+                                        return res.status(403).send({success: false, msg: 'User can not receive. '});
+                                    distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: users, trashCards: trashCards});
+                                    updateGamePart(req.query.room, req.query.ended, true);
+                                    return res.json({success: false, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user}});
+                                }).sort( { chair_number: 'asc' } );
+                                break;
+                            case "skip":
+                                skipUsers.push(defendUser);
+                                var finished = false;
+                                UserInChat.find({
+                                    room: req.query.room,
+                                    email: { $nin: skipUsers },
+                                    finished: finished
+                                }, function(err, users) {
+                                    if (err)
+                                        return res.status(403).send({success: false, msg: 'Users can not receive. '});
+                                    if (users.length > 0) {
+                                        for (var i = 0; i < users.length; i++) {
+                                            var currUser = users[i];
+                                            for (var c = 0; c < turnCards.length; c++) {
+                                                result = currUser.userCards.filter(x => x.card[0] === turnCards[c]);
+                                                if (result.length > 0)
+                                                    break;
+                                            }
+                                            if (result.length > 0) {
+                                                next_user = currUser['email'];
+                                                return res.json({success: true, parts: partsRes[0], next_user: next_user});
+                                            } else {
+                                                // Trash.update({ room: req.query.room  }, { $push: { cards: { $each: trashCards } } }, { upsert: true }, function (err) {});
+                                                distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: users, trashCards: trashCards});
+                                                updateGamePart(req.query.room, req.query.ended, true);
+                                                next_user = partsRes[0].turns.filter(x => x.move_type === 'defend');
+                                                return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user[0].user}});
+                                                /*async.eachSeries(trashCards, function updateObject (obj, done) {
+                                                    // Trash.findOneAndUpdate({ room: req.query.room }, { $addToSet : { cards: obj.card }}, { upsert: true }, done);
+                                                }, function allDone (error) {
+                                                    distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: users});
+                                                    updateGamePart(req.query.room, req.query.ended, true);
+                                                    next_user = partsRes[0].turns.filter(x => x.move_type === 'defend');
+                                                    return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user[0].user}});
+                                                });*/
+                                            }
+                                        }
                                     } else {
-                                        async.eachSeries(trashCards, function updateObject (obj, done) {
-                                            // Model.update(condition, doc, callback)
-                                            Trash.findOneAndUpdate({ room: req.query.room }, { $addToSet : { cards: obj.card }}, { upsert: true }, done);
+                                        distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: users, trashCards: trashCards});
+                                        updateGamePart(req.query.room, req.query.ended, true);
+                                        next_user = partsRes[0].turns.filter(x => x.move_type === 'defend');
+                                        return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user[0].user}});
+                                        /*async.eachSeries(trashCards, function updateObject (obj, done) {
+                                            Trash.update({ room: req.query.room  }, { $push: { cards: { $each: obj.card } } }, { upsert: true }, done);
+                                            // Trash.findOneAndUpdate({ room: req.query.room }, { $addToSet : { cards: obj.card }}, { upsert: true }, done);
                                         }, function allDone (error) {
                                             distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: users});
                                             updateGamePart(req.query.room, req.query.ended, true);
-                                            next_user = partsRes[0].turns.filter(x => x.move_type === 'defend');
-                                            return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user[0].user}});
                                         });
+
+                                        next_user = partsRes[0].turns.filter(x => x.move_type === 'defend');
+                                        return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user[0].user}});*/
                                     }
-                                }
-                            } else {
-                                async.eachSeries(trashCards, function updateObject (obj, done) {
-                                    Trash.findOneAndUpdate({ room: req.query.room }, { $addToSet : { cards: obj.card }}, { upsert: true }, done);
-                                }, function allDone (error) {
-                                    distributionCards({room: req.query.room, currUser: decoded.user.email, part: lastPart, users: users});
-                                    updateGamePart(req.query.room, req.query.ended, true);
                                 });
+                                break;
 
-                                next_user = partsRes[0].turns.filter(x => x.move_type === 'defend');
-                                return res.json({success: true, parts: [], part: lastPart['part'], lastTurn: {type: lastTurn['move_type'], next_user: next_user[0].user}});
-                            }
-                        });
-                        break;
-
-                    default:
-                        return res.json({success: false, parts: []});
-                }
+                            default:
+                                return res.json({success: false, parts: []});
+                        }
+                    }
+                });
             }
 
         }).sort( { part: 'desc' } );
@@ -1027,7 +1082,6 @@ router.post('/push_cards',  passport.authenticate('jwt', { session: false}), fun
                                     UserInChat.findOneAndUpdate({room: room, email: user}, {$addToSet: { userCards: cards }}, { upsert: false },
                                         function (err) {
                                             if(!err) {
-                                                console.log('packCards: ', packCards);
                                             }
                                         });
                                 }
@@ -1171,14 +1225,15 @@ function distributionCards(data) {
                                     Pack.update({room: data.room}, {cards: encode(JSON.stringify(packJson), data.room)}, { upsert: false }, function (err) {});
                                 }
                             }
-                            UserInChat.update({ room: data.room, email:user.email  }, { $push: { userCards: { $each: cards } } }, { upsert: false }, done);
                         }
+                        UserInChat.update({ room: data.room, email:user.email  }, { $push: { userCards: { $each: cards } } }, { upsert: false }, done);
                     }, function allDone (error) {
                         Pack.update({room: data.room}, {cards: encode(JSON.stringify(packJson), data.room)}, { upsert: false }, function (err) {});
                     });
                 });
             }
         });
+        Trash.update({ room: data.room  }, { $push: { cards: { $each: data.trashCards } } }, { upsert: true }, function (err) {});
     }
 }
 

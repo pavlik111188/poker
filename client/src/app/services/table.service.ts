@@ -16,6 +16,7 @@ export class TableService {
     private getTableListUrl = 'table_list';
     private getTableInfoUrl = 'table_info';
     private removeTableUrl = 'remove_table';
+    private getTestUrl = 'test';
 
     constructor(
         private http: HttpClient,
@@ -56,5 +57,12 @@ export class TableService {
         return this.http.get<Table>(url, {headers: headers, params: {id: id}})
             .map((response) => response as Table);
     }
+
+  getTest() {
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': this.token});
+    const url = `${this.domain}${this.getTestUrl}`;
+    return this.http.get<any>(url, {headers: headers})
+      .map((response) => response as any);
+  }
 
 }

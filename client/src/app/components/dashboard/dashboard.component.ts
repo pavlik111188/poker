@@ -38,6 +38,9 @@ export class DashboardComponent implements OnInit {
   }*/
 
   ngOnInit() {
+    this.tableService.getTest().subscribe((res) => {
+      console.log(res);
+    });
     setTimeout(() => {
       this.getTableList();
     }, 500);

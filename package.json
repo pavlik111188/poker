@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "description": "Poker nodejs API",
   "scripts": {
-    "run-dev": "node server.js"
+    "run-dev": "node server.js",
+    "compodoc": "./node_modules/.bin/compodoc -p client/src/tsconfig.app.json"
   },
   "dependencies": {
     "bcrypt": "^1.0.3",
@@ -23,5 +24,8 @@
     "socket.io-client": "^2.0.4",
     "socketio": "^1.0.0"
   },
-  "author": "Pavel S"
+  "author": "Pavel S",
+  "devDependencies": {
+    "@compodoc/compodoc": "^1.1.1"
+  }
 }

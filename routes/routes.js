@@ -31,31 +31,6 @@ const Trash = require('../models/trash'); // get the mongoose model
 
 const productController = require("../controllers/user_cards");
 
-// test
-router.get('/test', function ( req, res, next) {
-    var options = { method: 'GET',
-        url: 'https://dev15735.service-now.com/api/now/v1/table/incident',
-        qs: { sysparm_limit: '10' },
-        headers:
-            { 'postman-token': '53b1d2a2-a82c-a642-b005-297483701440',
-                'cache-control': 'no-cache',
-                authorization: 'Basic YWRtaW46Z1QyNyhtblMxb2lrZ2dXMV4zbHZiZEs=',
-                'content-type': 'application/json;charset=UTF-8',
-                'x-usertoken': 'efc6d3c1db011300a11373278c961937f750805175e58cae965dc7ecf22c0ed3e7773cc4',
-                accept: 'application/json' },
-        form:
-            { data: '{\'short_description\':\'Unable to connect to office wifi\',\'assignment_group\':\'287ebd7da9fe198100f92cc8d1d2154e\',\'urgency\':\'2\',\'impact\':\'2\'}',
-                user: '\'pavlo111188@gmail.com\':\'gT27(mnS1oikggW1^3lvbdK\'' } };
-
-    request(options, function (error, response, body) {
-        if (error) throw new Error(error);
-
-        console.log(body);
-    });
-    res.send('TEST page is working!!!');
-});
-
-// create a new user account (POST http://localhost:8085/api/signup)
 router.post('/signup', function( req, res, next ) {
 
     if (!req.body.name || !req.body.password) {
@@ -84,7 +59,6 @@ router.post('/signup', function( req, res, next ) {
     }
 });
 
-// create a new table for the game (POST http://localhost:8085/api/add_table)
 router.post('/add_table',  passport.authenticate('jwt', { session: false}), function(req, res, next) {
     var token = getToken(req.headers);
     if (token) {
@@ -118,7 +92,6 @@ router.post('/add_table',  passport.authenticate('jwt', { session: false}), func
     }
 });
 
-// remove table for the game (POST http://localhost:8085/api/remove_table)
 router.post('/remove_table',  passport.authenticate('jwt', { session: false}), function(req, res, next) {
     var token = getToken(req.headers);
     if (token) {
@@ -266,7 +239,6 @@ router.get('/card_list', passport.authenticate('jwt', { session: false}), functi
     }
 });
 
-// route to authenticate a user (POST http://localhost:3000/api/login)
 router.post('/login', function( req, res, next ) {
 
     User.findOne({
@@ -306,7 +278,6 @@ router.post('/login', function( req, res, next ) {
     });
 });
 
-// route to a restricted info (GET http://localhost:3000/api/dashboard)
 router.get('/dashboard', passport.authenticate('jwt', { session: false}), function(req, res, next) {
     var token = getToken(req.headers);
     if (token) {
